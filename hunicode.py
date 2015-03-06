@@ -73,3 +73,19 @@ def common_suffix(s1, s2):
 
 def md5(s):
     return hashlib.md5(s.encode('utf-8')).hexdigest()
+
+
+
+
+
+
+def test():
+    def print_list(lst):
+        for e in lst:
+            print e.encode('utf-8')
+
+
+if __name__ == '__main__':
+    test()
+
+
