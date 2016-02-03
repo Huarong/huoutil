@@ -19,8 +19,6 @@ try:
 except ImportError:
     pass
 
-import const
-
 HOST_PATTEN = re.compile(r'https?://([a-zA-Z0-9.\-_]+)')
 
 
@@ -87,85 +85,121 @@ class ConfigError(Exception):
         return repr(self.message)
 
 
-class Config(object):
-    def __init__(self, conf_path):
-        self.name = None
-        self.path = None
-        self.json = {}
-        self.log_path = None
-        self.load_conf(conf_path)
-        self.run_dir = None
-        self.type_dir = None
-        self.type_pool_dir = None
+class ConfigBase(object):
+    """
+    How to use:
+        class Config(ConfigBase):
+            def __init__(self, path=None):
+                super(Config, self).__init__()
+                self.NAME = 'Tom'
+                self.AGE = 12
+                self.LOVE = ['apple', 'banana']
+                if path:
+                    self.load_conf(path)
+    """
 
-    def load_conf(self, conf_path):
-        self.path = os.path.abspath(conf_path)
-        self.name = os.path.basename(conf_path)
-        if self.name.endswith('.json'):
-            self.name = self.name[:-5]
-            with codecs.open(self.path, encoding='utf-8') as fc:
-                json_str = ''
-                for line in fc:
-                    if not line.lstrip().startswith('//'):
-                        json_str += line.rstrip('\n')
-                self.json = json.loads(json_str)
+    def __init__(self):
+        self._path = ''
+        self._name = ''
+        self._type = ''
 
-        elif self.name.endswith('.conf'):
-            self.name = self.name[:-5]
-            with codecs.open(self.path, encoding='utf-8') as fc:
-                for line in fc:
-                    if not line.strip():
-                        continue
-                    if line.lstrip().startswith('#'):
-                        continue
-                    tokens = line.rstrip().split('=')
-                    if len(tokens) != 2:
-                        logging.warning('invalid config line: %s' % line)
-                    key = tokens[0]
-                    value = tokens[1]
-                    try:
-                        value = int(value)
-                    except ValueError:
-                        try:
-                            value = float(value)
-                        except ValueError:
-                            pass
-                    self.json[key] = value
+    def is_valid_key(self, key):
+        if key in self.__dict__:
+            return True
+        else:
+            return False
 
-        self.log_path = os.path.join(const.LOG_DIR, '%s.log' % self.name)
+    def cast(self, key, value):
+        init_value = self.__dict__[key]
+        if isinstance(init_value, int):
+            value = int(value)
+        elif isinstance(init_value, float):
+            value = float(value)
+        elif isinstance(init_value, (list)):
+            tokens = value.split(',')
+            if init_value:
+                element_type = type(init_value[0])
+                value = [element_type(t) for t in tokens]
+            else:
+                value = tokens
+            if type(init_value) == tuple:
+                value = tuple(value)
+            elif type(init_value) == set:
+                value = set(value)
+        else:
+            pass
+        return value
 
+    def load_conf(self, path, typ=None):
+        ext = path.split('.')[-1]
+        if not typ:
+            if ext == 'conf':
+                typ = 'sh'
+        if typ == 'sh':
+            self.load_sh_conf(path)
+        elif typ == 'json':
+            self.load_json_conf(path)
+        else:
+            raise ValueError(
+                'invalid conf type: {0}. Please assign to  "typ" explicitly'.format(
+                    typ))
+        return None
+
+    def load_sh_conf(self, path):
+        self._path = os.path.abspath(path)
+        self._name = os.path.basename(self._path)
+        self._type = 'sh'
+        with codecs.open(path, encoding='utf-8') as fc:
+            for line in fc:
+                if not line.strip():
+                    continue
+                if line.lstrip().startswith('#'):
+                    continue
+                tokens = line.rstrip().split('=')
+                if len(tokens) < 2:
+                    logging.warning('invalid config line: %s' % line)
+                key = tokens[0]
+                key = key.upper()
+                if self.is_valid_key(key):
+                    value = ''.join(tokens[1:])
+                    value = self.cast(key, value)
+                    self.__setattr__(key, value)
+                else:
+                    logging.warn('invalid key {0}'.format(key))
+        return None
+
+    def load_json_conf(self, path):
+        self._path = os.path.abspath(path)
+        self._name = os.path.basename(self._path)
+        self._type = 'json'
+        with codecs.open(path, encoding='utf-8') as fc:
+            json_str = ''
+            for line in fc:
+                if not line.lstrip().startswith('//'):
+                    json_str += line.rstrip('\n')
+            jsn = json.loads(json_str)
+            for key, value in jsn:
+                key = key.upper()
+                if self.is_valid_key(key):
+                    value = self.cast(key, value)
+                    self.__setattr__(key, value)
+                else:
+                    logging.warn('invalid key {0}'.format(key))
         return None
 
     def dump(self, path):
         with codecs.open(path, 'wb', encoding='utf-8') as fp:
-            for key in self.json:
-                val = self.json[key]
-                fp.write('%s=%s\n' % (key, val))
+            for key, value in self.__dict__.items():
+                fp.write('%s=%s\n' % (key, value))
         return None
 
-    def get(self, key):
-        try:
-            val = self.json[key]
-            return val
-        except KeyError:
-            raise ConfigError('key [%s] not exist in config: %s' %
-                              (key, self.path))
-
-    def add(self, key, val):
-        if key in self.json:
-            raise ConfigError('key [%s] already exist' % key)
-        else:
-            self.json[key] = val
-
-    def update(self, key, val):
-        try:
-            self.json[key] = val
-        except KeyError:
-            raise ConfigError('key [%s] not exist in config: %s' %
-                              (key, self.path))
+    def log(self, logger):
+        logger.info('log config:')
+        for key, value in self.__dict__.items():
+            logger.info('%s=%s' % (key, value))
 
     def __str__(self):
-        return str(self.json)
+        return str(self.__dict__)
 
     def __unicode__(self):
         return self.__str__()

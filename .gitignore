@@ -1,0 +1,5 @@
+.cache
+*.pyc
+*.out
+tests/__pycache__
+
