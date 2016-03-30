@@ -6,12 +6,14 @@ import sys
 import re
 import time
 import logging
+import logging.handlers
 import hashlib
 import pickle
 import codecs
 import json
 from collections import defaultdict
 from urlparse import urlparse
+from HTMLParser import HTMLParser
 # from lxml import etree  # not exist on hadoop
 import xml.etree.ElementTree as ET
 try:
@@ -94,14 +96,15 @@ class ConfigBase(object):
                 self.NAME = 'Tom'
                 self.AGE = 12
                 self.LOVE = ['apple', 'banana']
+
                 if path:
                     self.load_conf(path)
     """
 
     def __init__(self):
-        self._path = ''
-        self._name = ''
-        self._type = ''
+        self.path = ''
+        self.name = ''
+        self.type = ''
 
     def is_valid_key(self, key):
         if key in self.__dict__:
@@ -131,7 +134,11 @@ class ConfigBase(object):
         return value
 
     def load_conf(self, path, typ=None):
-        ext = path.split('.')[-1]
+        basename = os.path.basename(path)
+        ext = basename.split('.')[-1]
+        self.ext = ext
+        print ext
+        self.name = '.'.join(basename.split('.')[:-1])
         if not typ:
             if ext == 'conf':
                 typ = 'sh'
@@ -146,9 +153,8 @@ class ConfigBase(object):
         return None
 
     def load_sh_conf(self, path):
-        self._path = os.path.abspath(path)
-        self._name = os.path.basename(self._path)
-        self._type = 'sh'
+        self.path = os.path.abspath(path)
+        self.type = 'sh'
         with codecs.open(path, encoding='utf-8') as fc:
             for line in fc:
                 if not line.strip():
@@ -168,10 +174,14 @@ class ConfigBase(object):
                     logging.warn('invalid key {0}'.format(key))
         return None
 
+    def load_py_conf(self, path):
+        self.path = os.path.abspath(path)
+        self.type = 'py'
+        import path
+
     def load_json_conf(self, path):
-        self._path = os.path.abspath(path)
-        self._name = os.path.basename(self._path)
-        self._type = 'json'
+        self.path = os.path.abspath(path)
+        self.type = 'json'
         with codecs.open(path, encoding='utf-8') as fc:
             json_str = ''
             for line in fc:
@@ -211,26 +221,68 @@ def mkdir(dir_name):
     return None
 
 
-def init_log(logname, filename, level=logging.DEBUG, console=True):
-    # make log file directory when not exist
-    directory = os.path.dirname(filename)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+def init_log(
+        log_path,
+        level=logging.INFO,
+        when="D",
+        backup=7,
+        format="%(levelname)s: %(asctime)s: %(filename)s:%(lineno)d * %(thread)d %(message)s",
+        datefmt="%m-%d %H:%M:%S"):
+    """
+    init_log - initialize log module
 
-    logger = logging.getLogger(logname)
-    formatter = logging.Formatter(
-        '%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
-    fileHandler = logging.FileHandler(filename, mode='a')
-    fileHandler.setFormatter(formatter)
+    Args:
+      log_path      - Log file path prefix.
+                      Log data will go to two files: log_path.log and log_path.log.wf
+                      Any non-exist parent directories will be created automatically
+      level         - msg above the level will be displayed
+                      DEBUG < INFO < WARNING < ERROR < CRITICAL
+                      the default value is logging.INFO
+      when          - how to split the log file by time interval
+                      'S' : Seconds
+                      'M' : Minutes
+                      'H' : Hours
+                      'D' : Days
+                      'W' : Week day
+                      default value: 'D'
+      format        - format of the log
+                      default format:
+                      %(levelname)s: %(asctime)s: %(filename)s:%(lineno)d * %(thread)d %(message)s
+                      INFO: 12-09 18:02:42: log.py:40 * 139814749787872 HELLO WORLD
+      backup        - how many backup file to keep
+                      default value: 7
 
+    Raises:
+        OSError: fail to create log directories
+        IOError: fail to open log file
+
+    Example:
+    init_log("./log/my_program")  # 日志保存到./log/my_program.log和./log/my_program.log.wf，按天切割，保留7天
+    logging.info("Hello World!!!")
+
+    """
+    formatter = logging.Formatter(format, datefmt)
+    logger = logging.getLogger()
     logger.setLevel(level)
-    logger.addHandler(fileHandler)
-    if console:
-        streamHandler = logging.StreamHandler()
-        streamHandler.setFormatter(formatter)
-        logger.addHandler(streamHandler)
 
-    return logger
+    dir = os.path.dirname(log_path)
+    if not os.path.isdir(dir):
+        os.makedirs(dir)
+
+    handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log",
+                                                        when=when,
+                                                        backupCount=backup)
+    handler.setLevel(level)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+    handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log.wf",
+                                                        when=when,
+                                                        backupCount=backup)
+    handler.setLevel(logging.WARNING)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+    return None
 
 
 def file2dict(path,
@@ -258,7 +310,10 @@ def file2dict(path,
                 key = tokens[kn]
                 if ktype:
                     key = ktype(key)
-                value = tokens[vn]
+                if vn is None:
+                    value = tokens[:kn] + tokens[kn+1:]
+                else:
+                    value = tokens[vn]
                 if vtype:
                     value = vtype(value)
                 d[key] = value
@@ -360,16 +415,13 @@ def file_line_num(path, encoding='utf-8'):
     return i + 1
 
 
-def timer(func, logger=None):
+def timer(func):
     def wrapper(*arg, **kw):
         t1 = time.time()
         func(*arg, **kw)
         t2 = time.time()
         infomation = '%0.4f sec %s' % ((t2 - t1), func.func_code)
-        if logger:
-            logger.info(infomation)
-        else:
-            sys.stderr.write('%s\n' % infomation)
+        logging.info(infomation)
         return None
 
     return wrapper
@@ -534,8 +586,111 @@ def find_host(s):
 
 
 def url2host(url):
-    found = HOST_PATTEN.findall(url)
-    if found:
-        return found[0]
+    if type(url) in (str, unicode):
+        su = urlparse(url)
     else:
-        return None
+        su = url
+    if su.netloc:
+        return su.netloc
+    else:
+        return su.path.split('/')[0]
+
+
+def norm_url(url):
+    su = urlparse(url)
+    new_url = su.netloc + su.path
+    if new_url in ('3g.163.com/touch/article.html', 'wenku.baidu.com/link',
+            'baike.baidu.com/link', 'zhidao.baidu.com/link', 'www.welltang.com/webapp/baidu.php'):
+        return url
+    else:
+        return new_url
+
+
+def iter_by_key(iterable, key_idx=0, func=None):
+    info_list = []
+    last_key = None
+    key = None
+    for item in iterable:
+        if func:
+            item = func(item)
+        try:
+            key = item[key_idx]
+        except IndexError:
+            continue
+        remain = item[:key_idx] + item[key_idx + 1:]
+
+        # Continue the same key
+        if key == last_key:
+            info_list.append(remain)
+
+        # Begin a new Key
+        else:
+            # The line is not the first line in the file.
+            if last_key is not None:
+                yield (last_key, info_list)
+
+            info_list = [remain]
+            last_key = key
+    # The last key of the file
+    if info_list:
+        yield (key, info_list)
+
+
+def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None):
+    info_list = []
+    last_key = None
+    key = None
+    with codecs.open(path, encoding=encoding) as f:
+        def line_func(line):
+            return line.strip('\n\r ').split(sep)
+        if func:
+            new_func = lambda line: func(line_func(line))
+        else:
+            new_func = line_func
+        for key, info_list in iter_by_key(f, key_idx=key_idx, func=new_func):
+            yield (key, info_list)
+
+
+def dict_dot(dict_a, dict_b):
+    production = 0.0
+    for k, va in dict_a.items():
+        try:
+            vb = dict_b[k]
+            production += va * vb
+        except KeyError:
+            continue
+    return production
+
+
+def list_dot(a, b):
+    production = 0.0
+    for i in range(min(len(a), len(b))):
+        production += a[i] * b[i]
+    return production
+
+
+def md5(s):
+    return hashlib.md5(s.encode('utf-8')).hexdigest()
+
+
+class MLStripper(HTMLParser):
+    """
+    http://stackoverflow.com/a/925630/1282982
+    """
+    def __init__(self):
+        self.reset()
+        self.fed = []
+
+    def handle_data(self, d):
+        self.fed.append(d)
+
+    def get_data(self):
+        return ''.join(self.fed)
+
+
+def strip_tags(html):
+    s = MLStripper()
+    html = s.unescape(html)
+    s.feed(html)
+    return s.get_data()
+
