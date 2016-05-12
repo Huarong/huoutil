@@ -606,13 +606,15 @@ def norm_url(url):
         return new_url
 
 
-def iter_by_key(iterable, key_idx=0, func=None):
+def iter_by_key(iterable, key_idx=0, func=None, filter_func=None):
     info_list = []
     last_key = None
     key = None
     for item in iterable:
         if func:
             item = func(item)
+        if filter_func and not filter_func(item):
+            continue
         try:
             key = item[key_idx]
         except IndexError:
@@ -636,7 +638,7 @@ def iter_by_key(iterable, key_idx=0, func=None):
         yield (key, info_list)
 
 
-def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None):
+def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None, filter_func=None):
     info_list = []
     last_key = None
     key = None
@@ -647,7 +649,7 @@ def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None):
             new_func = lambda line: func(line_func(line))
         else:
             new_func = line_func
-        for key, info_list in iter_by_key(f, key_idx=key_idx, func=new_func):
+        for key, info_list in iter_by_key(f, key_idx=key_idx, func=new_func, filter_func=filter_func):
             yield (key, info_list)
 
 

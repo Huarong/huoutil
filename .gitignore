@@ -3,3 +3,5 @@
 *.out
 tests/__pycache__
 *.egg-info
+*.un~
+build
