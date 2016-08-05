@@ -689,8 +689,18 @@ class MLStripper(HTMLParser):
     def get_data(self):
         return ''.join(self.fed)
 
+    def strip_tags(self, html):
+        self.reset()
+        self.fed = []
+        html = self.unescape(html)
+        self.feed(html)
+        return self.get_data()
+
 
 def strip_tags(html):
+    """
+    If you need to strip multi times. It is better not to use the function but the class method.
+    """
     s = MLStripper()
     html = s.unescape(html)
     s.feed(html)
