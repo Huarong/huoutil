@@ -418,11 +418,11 @@ def file_line_num(path, encoding='utf-8'):
 def timer(func):
     def wrapper(*arg, **kw):
         t1 = time.time()
-        func(*arg, **kw)
+        ret = func(*arg, **kw)
         t2 = time.time()
         infomation = '%0.4f sec %s' % ((t2 - t1), func.func_code)
         logging.info(infomation)
-        return None
+        return ret
 
     return wrapper
 
@@ -599,6 +599,8 @@ def url2host(url):
 def norm_url(url):
     su = urlparse(url)
     new_url = su.netloc + su.path
+    if su.scheme:
+        new_url = su.scheme + "://" + new_url
     if new_url in ('3g.163.com/touch/article.html', 'wenku.baidu.com/link',
             'baike.baidu.com/link', 'zhidao.baidu.com/link', 'www.welltang.com/webapp/baidu.php'):
         return url
