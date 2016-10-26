@@ -333,6 +333,8 @@ def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None):
 
     """
     d = set()
+    if not os.path.exists(path):
+        return d
     with codecs.open(path, encoding=encoding) as fp:
         for line in fp:
             tokens = line.rstrip().split(sep)
@@ -612,7 +614,10 @@ def iter_by_key(iterable, key_idx=0, func=None):
     key = None
     for item in iterable:
         if func:
-            item = func(item)
+            try:
+                item = func(item)
+            except:
+                continue
         try:
             key = item[key_idx]
         except IndexError:
@@ -649,6 +654,13 @@ def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None):
             new_func = line_func
         for key, info_list in iter_by_key(f, key_idx=key_idx, func=new_func):
             yield (key, info_list)
+
+
+def iter_file_in_dir(directory, encoding='utf-8'):
+    for name in os.listdir(directory):
+        path = os.path.join(directory, name)
+        with codecs.open(path, encoding=encoding) as f:
+            yield f
 
 
 def dict_dot(dict_a, dict_b):
