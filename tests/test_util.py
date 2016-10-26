@@ -25,3 +25,12 @@ def test_config():
     assert cfg.NAME == 'Tian'
     assert cfg.AGE == 32
     assert cfg.LOVE == ['apple', 'banana']
+
+@timer
+def only_for_test_timer(a, b):
+    return a + b
+
+def test_timer():
+    assert 3 == only_for_test_timer(1, 2)
+
+

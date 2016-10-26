@@ -420,11 +420,11 @@ def file_line_num(path, encoding='utf-8'):
 def timer(func):
     def wrapper(*arg, **kw):
         t1 = time.time()
-        func(*arg, **kw)
+        ret = func(*arg, **kw)
         t2 = time.time()
         infomation = '%0.4f sec %s' % ((t2 - t1), func.func_code)
         logging.info(infomation)
-        return None
+        return ret
 
     return wrapper
 
@@ -601,6 +601,8 @@ def url2host(url):
 def norm_url(url):
     su = urlparse(url)
     new_url = su.netloc + su.path
+    if su.scheme:
+        new_url = su.scheme + "://" + new_url
     if new_url in ('3g.163.com/touch/article.html', 'wenku.baidu.com/link',
             'baike.baidu.com/link', 'zhidao.baidu.com/link', 'www.welltang.com/webapp/baidu.php'):
         return url
@@ -608,7 +610,7 @@ def norm_url(url):
         return new_url
 
 
-def iter_by_key(iterable, key_idx=0, func=None):
+def iter_by_key(iterable, key_idx=0, func=None, filter_func=None):
     info_list = []
     last_key = None
     key = None
@@ -618,6 +620,8 @@ def iter_by_key(iterable, key_idx=0, func=None):
                 item = func(item)
             except:
                 continue
+        if filter_func and not filter_func(item):
+            continue
         try:
             key = item[key_idx]
         except IndexError:
@@ -641,7 +645,7 @@ def iter_by_key(iterable, key_idx=0, func=None):
         yield (key, info_list)
 
 
-def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None):
+def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None, filter_func=None):
     info_list = []
     last_key = None
     key = None
@@ -652,7 +656,7 @@ def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None):
             new_func = lambda line: func(line_func(line))
         else:
             new_func = line_func
-        for key, info_list in iter_by_key(f, key_idx=key_idx, func=new_func):
+        for key, info_list in iter_by_key(f, key_idx=key_idx, func=new_func, filter_func=filter_func):
             yield (key, info_list)
 
 
@@ -699,8 +703,18 @@ class MLStripper(HTMLParser):
     def get_data(self):
         return ''.join(self.fed)
 
+    def strip_tags(self, html):
+        self.reset()
+        self.fed = []
+        html = self.unescape(html)
+        self.feed(html)
+        return self.get_data()
+
 
 def strip_tags(html):
+    """
+    If you need to strip multi times. It is better not to use the function but the class method.
+    """
     s = MLStripper()
     html = s.unescape(html)
     s.feed(html)
