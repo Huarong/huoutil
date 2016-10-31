@@ -285,6 +285,37 @@ def init_log(
     return None
 
 
+def log_kv(seq, log=None, prefix='', postfix='', item_sep=';', vv_sep=','):
+    if not log:
+        log = logging
+    if not seq:
+        lst = []
+    elif isinstance(seq, dict):
+        lst = seq.items()
+    else:
+        lst = seq
+    item_str_list = []
+    for item in lst:
+        if len(item) == 0:
+            k, v = '', ''
+        elif len(item) == 1:
+            k, v = item, ''
+        elif len(item) == 2:
+            k, v = item
+        elif len(item) > 2:
+            k, v = item[0], vv_sep.join(item[1:])
+        item_str = u'{}[{}]'.format(k, v)
+        item_str_list.append(item_str)
+    log_str = ""
+    if prefix:
+        log_str += prefix + item_sep
+    log_str += item_sep.join(item_str_list)
+    if postfix:
+        log_str += item_sep + postfix
+    log.info(log_str)
+    return None
+
+
 def file2dict(path,
               kn=0,
               vn=1,
