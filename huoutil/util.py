@@ -285,9 +285,7 @@ def init_log(
     return None
 
 
-def log_kv(seq, log=None, prefix='', postfix='', item_sep=';', vv_sep=','):
-    if not log:
-        log = logging
+def log_kv(seq, log=logging.info, prefix='', postfix='', item_sep=';', vv_sep=','):
     if not seq:
         lst = []
     elif isinstance(seq, dict):
@@ -308,11 +306,11 @@ def log_kv(seq, log=None, prefix='', postfix='', item_sep=';', vv_sep=','):
         item_str_list.append(item_str)
     log_str = ""
     if prefix:
-        log_str += prefix + item_sep
+        log_str += prefix + ": "
     log_str += item_sep.join(item_str_list)
     if postfix:
-        log_str += item_sep + postfix
-    log.info(log_str)
+        log_str += " (" + postfix + ")"
+    log(log_str)
     return None
 
 
