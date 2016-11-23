@@ -351,17 +351,17 @@ def file2dict(path,
     return d
 
 
-def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None):
+def file2list(path, n=0, sep='\t', encoding='utf-8', typ=None):
     """
-    build a set from a file.
+    build a list from a file.
     @param path: input file path
     @param kn: the column number of key
     @param sep: the field seperator
     @param encoding: the input encoding
-    @return: a set
+    @return: a list
 
     """
-    d = set()
+    d = []
     if not os.path.exists(path):
         return d
     with codecs.open(path, encoding=encoding) as fp:
@@ -371,10 +371,19 @@ def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None):
                 value = tokens[n]
                 if typ:
                     value = typ(value)
-                d.add(value)
+                d.append(value)
             except IndexError:
                 logging.exception('invalid line: %s' % line)
     return d
+
+
+def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None):
+    """
+    build a set from a file.
+    The parameters are the same as file2list
+    @return: a set
+    """
+    return set(file2list(path, n=n, sep=sep, encoding=encoding, typ=typ))
 
 
 def cout(s, encoding='utf-8', newline=True):
