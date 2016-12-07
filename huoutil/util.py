@@ -11,6 +11,7 @@ import hashlib
 import pickle
 import codecs
 import json
+import subprocess
 from collections import defaultdict
 from urlparse import urlparse
 from HTMLParser import HTMLParser
@@ -758,3 +759,32 @@ def strip_tags(html):
     s.feed(html)
     return s.get_data()
 
+
+def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
+    header = {}
+    sender_name, sender_mail = None, None
+    if sender:
+        if isinstance(sender, str) or isinstance(sender, unicode):
+            sender_name, sender_mail = sender, sender
+        elif (isinstance(sender, list) or isinstance(sender, tuple)) and len(sender) == 2:
+            sender_name, sender_mail = sender
+        else:
+            pass
+    if sender_name and sender_mail:
+        header['From'] = u'{} <{}>'.format(sender_name, sender_mail)
+    if html:
+        header['Content-Type'] = 'text/html'
+    if header:
+        header_str = '\n'.join([u'{}: {}'.format(k, v) for k, v in header.items()])
+        subject = '$(echo -e "{}\n{}")'.format(subject, header_str)
+
+    if isinstance(user_list, str) or isinstance(user_list, unicode):
+        user_list = [user_list, ]
+    cmd = 'echo "{}" | mailx -s "{}" {}'.format(content, subject, ','.join(user_list))
+    subprocess.call(cmd, shell=True)
+    return None
+
+
+def send_mail(subject, content, user_list, sender=None, html=False):
+    send_mail_by_mailx(subject, content, user_list, sender=sender, html=html)
+    return None
