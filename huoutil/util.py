@@ -788,3 +788,18 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
 def send_mail(subject, content, user_list, sender=None, html=False):
     send_mail_by_mailx(subject, content, user_list, sender=sender, html=html)
     return None
+
+
+def update_dict(d, u):
+    """
+    update dict d by dict u
+    d will be modified and returned
+    From: http://stackoverflow.com/a/3233356/1282982
+    """
+    for k, v in u.iteritems():
+        if isinstance(v, collections.Mapping):
+            r = update(d.get(k, {}), v)
+            d[k] = r
+        else:
+            d[k] = u[k]
+    return d
