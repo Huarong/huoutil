@@ -11,6 +11,7 @@ import hashlib
 import pickle
 import codecs
 import json
+import subprocess
 from collections import defaultdict
 from urlparse import urlparse
 from HTMLParser import HTMLParser
@@ -285,9 +286,7 @@ def init_log(
     return None
 
 
-def log_kv(seq, log=None, prefix='', postfix='', item_sep=';', vv_sep=','):
-    if not log:
-        log = logging
+def log_kv(seq, log=logging.info, prefix='', postfix='', item_sep=';', vv_sep=','):
     if not seq:
         lst = []
     elif isinstance(seq, dict):
@@ -308,11 +307,11 @@ def log_kv(seq, log=None, prefix='', postfix='', item_sep=';', vv_sep=','):
         item_str_list.append(item_str)
     log_str = ""
     if prefix:
-        log_str += prefix + item_sep
+        log_str += prefix + ": "
     log_str += item_sep.join(item_str_list)
     if postfix:
-        log_str += item_sep + postfix
-    log.info(log_str)
+        log_str += " (" + postfix + ")"
+    log(log_str)
     return None
 
 
@@ -353,17 +352,17 @@ def file2dict(path,
     return d
 
 
-def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None):
+def file2list(path, n=0, sep='\t', encoding='utf-8', typ=None):
     """
-    build a set from a file.
+    build a list from a file.
     @param path: input file path
     @param kn: the column number of key
     @param sep: the field seperator
     @param encoding: the input encoding
-    @return: a set
+    @return: a list
 
     """
-    d = set()
+    d = []
     if not os.path.exists(path):
         return d
     with codecs.open(path, encoding=encoding) as fp:
@@ -373,10 +372,19 @@ def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None):
                 value = tokens[n]
                 if typ:
                     value = typ(value)
-                d.add(value)
+                d.append(value)
             except IndexError:
                 logging.exception('invalid line: %s' % line)
     return d
+
+
+def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None):
+    """
+    build a set from a file.
+    The parameters are the same as file2list
+    @return: a set
+    """
+    return set(file2list(path, n=n, sep=sep, encoding=encoding, typ=typ))
 
 
 def cout(s, encoding='utf-8', newline=True):
@@ -758,3 +766,47 @@ def strip_tags(html):
     s.feed(html)
     return s.get_data()
 
+
+def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
+    header = {}
+    sender_name, sender_mail = None, None
+    if sender:
+        if isinstance(sender, str) or isinstance(sender, unicode):
+            sender_name, sender_mail = sender, sender
+        elif (isinstance(sender, list) or isinstance(sender, tuple)) and len(sender) == 2:
+            sender_name, sender_mail = sender
+        else:
+            pass
+    if sender_name and sender_mail:
+        header['From'] = u'{} <{}>'.format(sender_name, sender_mail)
+    if html:
+        header['Content-Type'] = 'text/html'
+    if header:
+        header_str = '\n'.join([u'{}: {}'.format(k, v) for k, v in header.items()])
+        subject = '$(echo -e "{}\n{}")'.format(subject, header_str)
+
+    if isinstance(user_list, str) or isinstance(user_list, unicode):
+        user_list = [user_list, ]
+    cmd = 'echo "{}" | mailx -s "{}" {}'.format(content, subject, ','.join(user_list))
+    subprocess.call(cmd, shell=True)
+    return None
+
+
+def send_mail(subject, content, user_list, sender=None, html=False):
+    send_mail_by_mailx(subject, content, user_list, sender=sender, html=html)
+    return None
+
+
+def update_dict(d, u):
+    """
+    update dict d by dict u
+    d will be modified and returned
+    From: http://stackoverflow.com/a/3233356/1282982
+    """
+    for k, v in u.iteritems():
+        if isinstance(v, collections.Mapping):
+            r = update_dict(d.get(k, {}), v)
+            d[k] = r
+        else:
+            d[k] = u[k]
+    return d
