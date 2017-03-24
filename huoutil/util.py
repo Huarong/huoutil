@@ -414,6 +414,13 @@ def print_matrix(matrix):
     return None
 
 
+def print_dict(d, encoding='utf-8'):
+    for k, v in d.iteritems():
+        outline = u'{}: {}'.format(k, v)
+        print outline.encode(encoding)
+    return None
+
+
 def p(obj, encoding='utf-8', indent=0):
     indent = indent
     typ = type(obj)
