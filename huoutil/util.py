@@ -267,8 +267,16 @@ def init_log(
     logger.setLevel(level)
 
     dir = os.path.dirname(log_path)
+    if not dir:
+        dir = './'
     if not os.path.isdir(dir):
         os.makedirs(dir)
+
+    stdout = logging.StreamHandler(sys.stdout)
+    stdout.setLevel(level)
+    stdout.setFormatter(formatter)
+    logger.addHandler(stdout)
+
 
     handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log",
                                                         when=when,
@@ -277,12 +285,12 @@ def init_log(
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log.wf",
+    err_handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log.wf",
                                                         when=when,
                                                         backupCount=backup)
-    handler.setLevel(logging.WARNING)
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+    err_handler.setLevel(logging.WARNING)
+    err_handler.setFormatter(formatter)
+    logger.addHandler(err_handler)
     return None
 
 
