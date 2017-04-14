@@ -14,9 +14,18 @@ import json
 import subprocess
 from collections import defaultdict
 from urlparse import urlparse
-from HTMLParser import HTMLParser
-# from lxml import etree  # not exist on hadoop
-import xml.etree.ElementTree as ET
+
+try:
+    from HTMLParser import HTMLParser
+except:
+    pass
+
+try:
+    # from lxml import etree  # not exist on hadoop
+    import xml.etree.ElementTree as ET
+except:
+    pass
+
 try:
     import numpy as np
 except ImportError:
