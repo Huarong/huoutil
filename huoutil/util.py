@@ -225,6 +225,14 @@ class ConfigBase(object):
         return self.__str__()
 
 
+def load_python_conf(conf_path, module_name='config'):
+    import imp
+    config = imp.load_module(module_name,
+                             open(conf_path), conf_path, ('', 'r',
+                                                          imp.PY_SOURCE))
+    return config
+
+
 def mkdir(dir_name):
     if not os.path.exists(dir_name):
         os.makedirs(dir_name)
