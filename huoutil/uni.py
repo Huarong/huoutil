@@ -4,7 +4,6 @@
 import string
 import hashlib
 
-
 CHINESE_PUNCTUATION = u'，。！￥？——；“”：《》（）'
 ENGLISH_PUNCTUATION = string.punctuation
 
@@ -60,7 +59,7 @@ def common_suffix(s1, s2):
     min_len = min(len(s1), len(s2))
     if min_len == 0:
         return ''
-    for i in range(-1, - min_len - 1, -1):
+    for i in range(-1, -min_len - 1, -1):
         if s1[i] != s2[i]:
             break
     if i == -1:
@@ -68,15 +67,11 @@ def common_suffix(s1, s2):
     elif i == -min_len:
         return s1[i:]
     else:
-        return s1[i+1:]
+        return s1[i + 1:]
 
 
 def md5(s):
     return hashlib.md5(s.encode('utf-8')).hexdigest()
-
-
-
-
 
 
 def test():
@@ -87,5 +82,3 @@ def test():
 
 if __name__ == '__main__':
     test()
-
-
