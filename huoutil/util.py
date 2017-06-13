@@ -158,8 +158,8 @@ class ConfigBase(object):
             self.load_json_conf(path)
         else:
             raise ValueError(
-                'invalid conf type: {0}. Please assign to  "typ" explicitly'.format(
-                    typ))
+                'invalid conf type: {0}. Please assign to  "typ" explicitly'.
+                format(typ))
         return None
 
     def load_sh_conf(self, path):
@@ -234,6 +234,7 @@ def mkdir(dir_name):
 def init_log(
         log_path,
         level=logging.INFO,
+        stdout=False,
         when="D",
         backup=7,
         format="%(levelname)s: %(asctime)s: %(filename)s:%(lineno)d * %(thread)d %(message)s",
@@ -281,29 +282,32 @@ def init_log(
     if not os.path.isdir(dir):
         os.makedirs(dir)
 
-    stdout = logging.StreamHandler(sys.stdout)
-    stdout.setLevel(level)
-    stdout.setFormatter(formatter)
-    logger.addHandler(stdout)
+    if stdout:
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setLevel(level)
+        stdout_handler.setFormatter(formatter)
+        logger.addHandler(stdout_handler)
 
-
-    handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log",
-                                                        when=when,
-                                                        backupCount=backup)
+    handler = logging.handlers.TimedRotatingFileHandler(
+        log_path + ".log", when=when, backupCount=backup)
     handler.setLevel(level)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    err_handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log.wf",
-                                                        when=when,
-                                                        backupCount=backup)
+    err_handler = logging.handlers.TimedRotatingFileHandler(
+        log_path + ".log.wf", when=when, backupCount=backup)
     err_handler.setLevel(logging.WARNING)
     err_handler.setFormatter(formatter)
     logger.addHandler(err_handler)
     return None
 
 
-def log_kv(seq, log=logging.info, prefix='', postfix='', item_sep=';', vv_sep=','):
+def log_kv(seq,
+           log=logging.info,
+           prefix='',
+           postfix='',
+           item_sep=';',
+           vv_sep=','):
     if not seq:
         lst = []
     elif isinstance(seq, dict):
@@ -358,7 +362,7 @@ def file2dict(path,
                 if ktype:
                     key = ktype(key)
                 if vn is None:
-                    value = tokens[:kn] + tokens[kn+1:]
+                    value = tokens[:kn] + tokens[kn + 1:]
                 else:
                     value = tokens[vn]
                 if vtype:
@@ -434,7 +438,8 @@ def p(obj, encoding='utf-8', indent=0):
     indent = indent
     typ = type(obj)
     if typ == str or typ == unicode:
-        logging.info(' ' * indent, )
+        logging.info(
+            ' ' * indent, )
         logging.info(obj.encode(encoding))
     elif typ == list or typ == tuple:
         for e in obj:
@@ -667,7 +672,8 @@ def norm_url(url):
     if su.scheme:
         new_url = su.scheme + "://" + new_url
     if new_url in ('3g.163.com/touch/article.html', 'wenku.baidu.com/link',
-            'baike.baidu.com/link', 'zhidao.baidu.com/link', 'www.welltang.com/webapp/baidu.php'):
+                   'baike.baidu.com/link', 'zhidao.baidu.com/link',
+                   'www.welltang.com/webapp/baidu.php'):
         return url
     else:
         return new_url
@@ -708,18 +714,26 @@ def iter_by_key(iterable, key_idx=0, func=None, filter_func=None):
         yield (key, info_list)
 
 
-def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None, filter_func=None):
+def iter_file_by_key(path,
+                     key_idx=0,
+                     encoding='utf-8',
+                     sep='\t',
+                     func=None,
+                     filter_func=None):
     info_list = []
     last_key = None
     key = None
     with codecs.open(path, encoding=encoding) as f:
+
         def line_func(line):
             return line.strip('\n\r ').split(sep)
+
         if func:
             new_func = lambda line: func(line_func(line))
         else:
             new_func = line_func
-        for key, info_list in iter_by_key(f, key_idx=key_idx, func=new_func, filter_func=filter_func):
+        for key, info_list in iter_by_key(
+                f, key_idx=key_idx, func=new_func, filter_func=filter_func):
             yield (key, info_list)
 
 
@@ -756,6 +770,7 @@ class MLStripper(HTMLParser):
     """
     http://stackoverflow.com/a/925630/1282982
     """
+
     def __init__(self):
         self.reset()
         self.fed = []
@@ -790,7 +805,8 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
     if sender:
         if isinstance(sender, str) or isinstance(sender, unicode):
             sender_name, sender_mail = sender, sender
-        elif (isinstance(sender, list) or isinstance(sender, tuple)) and len(sender) == 2:
+        elif (isinstance(sender, list) or
+              isinstance(sender, tuple)) and len(sender) == 2:
             sender_name, sender_mail = sender
         else:
             pass
@@ -799,12 +815,16 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
     if html:
         header['Content-Type'] = 'text/html'
     if header:
-        header_str = '\n'.join([u'{}: {}'.format(k, v) for k, v in header.items()])
+        header_str = '\n'.join(
+            [u'{}: {}'.format(k, v) for k, v in header.items()])
         subject = '$(echo -e "{}\n{}")'.format(subject, header_str)
 
     if isinstance(user_list, str) or isinstance(user_list, unicode):
-        user_list = [user_list, ]
-    cmd = 'echo "{}" | mailx -s "{}" {}'.format(content, subject, ','.join(user_list))
+        user_list = [
+            user_list,
+        ]
+    cmd = 'echo "{}" | mailx -s "{}" {}'.format(content, subject,
+                                                ','.join(user_list))
     subprocess.call(cmd, shell=True)
     return None
 
