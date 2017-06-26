@@ -381,6 +381,28 @@ def file2dict(path,
     return d
 
 
+def dict2file(d, path, encoding='utf-8', kfunc=None, vfunc=None, sep='\t'):
+    """
+    Dump a dict to a file.
+    @param d: the dict to be dumpped
+    @param path: the output file path
+    @param encoding: the output file encoding
+    @param kfunc: a function applied to the key
+    @param vfunc: a function applied to the value
+    @param sep: the seperator of the output file
+    @return: always return None
+    """
+    with codecs.open(path, 'wb', encoding=encoding) as fo:
+        for key, value in d.iteritems():
+            if kfunc is not None:
+                key = kfunc(key)
+            if vfunc is not None:
+                value = vfunc(value)
+            outline = u'{}{}{}\n'.format(key, sep, value)
+            fo.write(outline)
+    return None
+
+
 def file2list(path, n=0, sep='\t', encoding='utf-8', typ=None):
     """
     build a list from a file.
