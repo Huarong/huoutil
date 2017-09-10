@@ -167,11 +167,11 @@ class ConfigBase(object):
         self.type = 'sh'
         with codecs.open(path, encoding='utf-8') as fc:
             for line in fc:
-                if not line.strip():
+                if not line.strip('\n\r '):
                     continue
-                if line.lstrip().startswith('#'):
+                if line.lstrip('\n\r ').startswith('#'):
                     continue
-                tokens = line.rstrip().split('=')
+                tokens = line.rstrip('\n\r ').split('=')
                 if len(tokens) < 2:
                     logging.warning('invalid config line: %s' % line)
                 key = tokens[0]
@@ -364,7 +364,7 @@ def file2dict(path,
     d = {}
     with codecs.open(path, encoding=encoding) as fp:
         for line in fp:
-            tokens = line.rstrip().split(sep)
+            tokens = line.rstrip('\n\r ').split(sep)
             try:
                 key = tokens[kn]
                 if ktype:
@@ -418,7 +418,7 @@ def file2list(path, n=0, sep='\t', encoding='utf-8', typ=None):
         return d
     with codecs.open(path, encoding=encoding) as fp:
         for line in fp:
-            tokens = line.rstrip().split(sep)
+            tokens = line.rstrip('\n\r ').split(sep)
             try:
                 value = tokens[n]
                 if typ:
