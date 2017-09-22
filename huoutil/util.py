@@ -468,8 +468,7 @@ def p(obj, encoding='utf-8', indent=0):
     indent = indent
     typ = type(obj)
     if typ == str or typ == unicode:
-        logging.info(
-            ' ' * indent, )
+        logging.info(' ' * indent, )
         logging.info(obj.encode(encoding))
     elif typ == list or typ == tuple:
         for e in obj:
@@ -835,8 +834,8 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
     if sender:
         if isinstance(sender, str) or isinstance(sender, unicode):
             sender_name, sender_mail = sender, sender
-        elif (isinstance(sender, list) or
-              isinstance(sender, tuple)) and len(sender) == 2:
+        elif (isinstance(sender, list)
+              or isinstance(sender, tuple)) and len(sender) == 2:
             sender_name, sender_mail = sender
         else:
             pass
