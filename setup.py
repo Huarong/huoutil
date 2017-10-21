@@ -8,4 +8,5 @@ setup(
     description=huoutil.__description__,
     author=huoutil.__author__,
     author_email=huoutil.__author_email__,
-    packages=['huoutil'], )
+    packages=['huoutil'],
+)
