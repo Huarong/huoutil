@@ -876,3 +876,11 @@ def update_dict(d, u):
         else:
             d[k] = u[k]
     return d
+
+
+def is_all_ascii(s):
+    try:
+        _ = str(s)
+        return True
+    except UnicodeEncodeError:
+        return False
