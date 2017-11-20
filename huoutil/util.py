@@ -403,6 +403,84 @@ def dict2file(d, path, encoding='utf-8', kfunc=None, vfunc=None, sep='\t'):
     return None
 
 
+def file2ddict(path,
+               k1n=0,
+               k2n=1,
+               vn=2,
+               sep='\t',
+               encoding='utf-8',
+               k1type=None,
+               k2type=None,
+               vtype=None):
+    """
+    build a two level dict from a file.
+    @param path: input file path
+    @param k1n: the column number of key 1
+    @param k1n: the column number of key 2
+    @param vn: the column number of value
+    @param sep: the field seperator
+    @param encoding: the input encoding
+    @return: a key value dict
+
+    """
+    d = defaultdict(dict)
+    with codecs.open(path, encoding=encoding) as fp:
+        for line in fp:
+            tokens = line.rstrip('\n\r ').split(sep)
+            try:
+                k1 = tokens[k1n]
+                k2 = tokens[k2n]
+                if k1type:
+                    k1 = k1type(k1)
+                if k2type:
+                    k2 = k2type(k2)
+                if vn is None:
+                    value = [
+                        tokens[i] for i in range(len(tokens))
+                        if i != k1n and i != k2n
+                    ]
+                else:
+                    value = tokens[vn]
+                if vtype:
+                    value = vtype(value)
+                d[k1][k2] = value
+            except IndexError:
+                logging.exception('invalid line: %s' % line)
+    return d
+
+
+def ddict2file(d,
+               path,
+               encoding='utf-8',
+               k1func=None,
+               k2func=None,
+               vfunc=None,
+               sep='\t'):
+    """
+    Dump a two level dict to a file.
+    @param d: the dict to be dumpped
+    @param path: the output file path
+    @param encoding: the output file encoding
+    @param k1func: a function applied to the key 1
+    @param k2func: a function applied to the key 2
+    @param vfunc: a function applied to the value
+    @param sep: the seperator of the output file
+    @return: always return None
+    """
+    with codecs.open(path, 'wb', encoding=encoding) as fo:
+        for k1, d2 in d.iteritems():
+            if k1func is not None:
+                k1 = k1func(k1)
+            for k2, value in d2.iteritems():
+                if k2func is not None:
+                    k2 = k2func(k2)
+                if vfunc is not None:
+                    value = vfunc(value)
+            outline = u'{}{}{}{}{}\n'.format(k1, sep, k2, sep, value)
+            fo.write(outline)
+    return None
+
+
 def file2list(path, n=0, sep='\t', encoding='utf-8', typ=None):
     """
     build a list from a file.
