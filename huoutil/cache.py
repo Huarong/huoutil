@@ -20,9 +20,13 @@ class RedisCache(object):
             return None
         self._cache = _cache
         self._key_sep = '\x01'
+        self._expire = None
 
     def set_key_sep(self, sep):
         self._key_sep = sep
+
+    def set_expire(self, time):
+        self._expire = time
 
     def _wrap_key(
             self,
@@ -39,7 +43,7 @@ class RedisCache(object):
 
     def set(self, k, v):
         k = self._wrap_key(k)
-        return self._cache.set(k, v)
+        return self._cache.set(k, v, ex=self._expire)
 
     def get_list(self, k, sep='\x01'):
         k = self._wrap_key(k)
@@ -51,7 +55,7 @@ class RedisCache(object):
             nv = None
         else:
             nv = sep.join(v)
-        return self._cache.set(k, nv)
+        return self._cache.set(k, nv, ex=self._expire)
 
     def get_json(self, k):
         k = self._wrap_key(k)
@@ -67,4 +71,4 @@ class RedisCache(object):
             nv = None
         else:
             nv = json.dumps(v, ensure_ascii=False)
-        return self._cache.set(k, nv)
+        return self._cache.set(k, nv, ex=self._expire)
