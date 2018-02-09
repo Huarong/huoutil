@@ -227,8 +227,7 @@ class ConfigBase(object):
 
 def load_python_conf(conf_path, module_name='config'):
     import imp
-    config = imp.load_module(module_name,
-                             open(conf_path), conf_path,
+    config = imp.load_module(module_name, open(conf_path), conf_path,
                              ('', 'r', imp.PY_SOURCE))
     return config
 
@@ -246,7 +245,7 @@ def init_log(
         when="D",
         backup=7,
         format="%(levelname)s: %(asctime)s: %(filename)s:%(lineno)d * %(thread)d %(message)s",
-        datefmt="%m-%d %H:%M:%S"):
+        datefmt="%Y-%m-%d %H:%M:%S"):
     """
     init_log - initialize log module
 
@@ -300,12 +299,15 @@ def init_log(
         log_path + ".log", when=when, backupCount=backup)
     handler.setLevel(level)
     handler.setFormatter(formatter)
+    # https://www.jianshu.com/p/25f70905ae9d
+    handler.suffix = '%Y-%m-%d'
     logger.addHandler(handler)
 
     err_handler = logging.handlers.TimedRotatingFileHandler(
         log_path + ".log.wf", when=when, backupCount=backup)
     err_handler.setLevel(logging.WARNING)
     err_handler.setFormatter(formatter)
+    handler.suffix = '%Y-%m-%d'
     logger.addHandler(err_handler)
     return None
 
