@@ -14,7 +14,8 @@ class RedisCache(object):
         self.port = port
         self.db = db
         try:
-            _cache = redis.StrictRedis(host='localhost', port=6379, db=0)
+            _cache = redis.StrictRedis(
+                host=self.host, port=self.port, db=self.db)
         except:
             logging.warning('Connect redis failed. The cache will not work')
             return None
