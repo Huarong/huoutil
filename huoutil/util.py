@@ -594,16 +594,23 @@ def file_line_num(path, encoding='utf-8'):
     return i + 1
 
 
-def timer(func):
-    def wrapper(*arg, **kw):
-        t1 = time.time()
-        ret = func(*arg, **kw)
-        t2 = time.time()
-        infomation = '%0.4f sec %s' % ((t2 - t1), func.func_code)
-        logging.info(infomation)
-        return ret
+def timer(logfmt=None):
+    def actual_decorator(func):
+        def wrapper(*arg, **kw):
+            t1 = time.time()
+            ret = func(*arg, **kw)
+            t2 = time.time()
+            ms = int((t2 - t1) * 1000)
+            if logfmt is None:
+                infomation = u'Timer {}: {}ms'.format(func.func_code, ms)
+            else:
+                infomation = logfmt.format(ms)
+            logging.info(infomation)
+            return ret
 
-    return wrapper
+        return wrapper
+
+    return actual_decorator
 
 
 def load_matrix(path, skip_lines=0):
