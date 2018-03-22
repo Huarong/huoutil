@@ -42,21 +42,25 @@ class RedisCache(object):
         k = self._wrap_key(k)
         return self._cache.get(k)
 
-    def set(self, k, v):
+    def set(self, k, v, ex=None):
         k = self._wrap_key(k)
-        return self._cache.set(k, v, ex=self._expire)
+        if ex is None:
+            ex = self._expire
+        return self._cache.set(k, v, ex=ex)
 
     def get_list(self, k, sep='\x01'):
         k = self._wrap_key(k)
         return sep.split(self._cache.get(k))
 
-    def set_list(self, k, v, sep='\x01'):
+    def set_list(self, k, v, sep='\x01', ex=None):
         k = self._wrap_key(k)
         if v is None:
             nv = None
         else:
             nv = sep.join(v)
-        return self._cache.set(k, nv, ex=self._expire)
+        if ex is None:
+            ex = self._expire
+        return self._cache.set(k, nv, ex=ex)
 
     def get_json(self, k):
         k = self._wrap_key(k)
@@ -66,10 +70,12 @@ class RedisCache(object):
         else:
             return json.loads(jsn_str)
 
-    def set_json(self, k, v):
+    def set_json(self, k, v, ex=None):
         k = self._wrap_key(k)
         if v is None:
             nv = None
         else:
             nv = json.dumps(v, ensure_ascii=False)
-        return self._cache.set(k, nv, ex=self._expire)
+        if ex is None:
+            ex = self._expire
+        return self._cache.set(k, nv, ex=ex)
