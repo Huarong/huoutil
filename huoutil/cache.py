@@ -4,8 +4,12 @@
 import os
 import sys
 import json
-import redis
 import logging
+
+try:
+    import redis
+except ImportError:
+    pass
 
 
 class RedisCache(object):
