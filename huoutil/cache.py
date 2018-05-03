@@ -5,6 +5,7 @@ import os
 import sys
 import json
 import logging
+import cPickle as pickle
 
 try:
     import redis
@@ -54,7 +55,10 @@ class RedisCache(object):
 
     def get_list(self, k, sep='\x01'):
         k = self._wrap_key(k)
-        return sep.split(self._cache.get(k))
+        v = self._cache.get(k)
+        if v is None:
+            return None
+        return v.split(sep)
 
     def set_list(self, k, v, sep='\x01', ex=None):
         k = self._wrap_key(k)
@@ -80,6 +84,24 @@ class RedisCache(object):
             nv = None
         else:
             nv = json.dumps(v, ensure_ascii=False)
+        if ex is None:
+            ex = self._expire
+        return self._cache.set(k, nv, ex=ex)
+
+    def get_obj(self, k):
+        k = self._wrap_key(k)
+        s = self._cache.get(k)
+        if s is None:
+            return None
+        else:
+            return pickle.loads(s)
+
+    def set_obj(self, k, v, ex=None):
+        k = self._wrap_key(k)
+        if v is None:
+            nv = None
+        else:
+            nv = pickle.dumps(v, protocol=2)
         if ex is None:
             ex = self._expire
         return self._cache.set(k, nv, ex=ex)
