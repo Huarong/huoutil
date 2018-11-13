@@ -13,12 +13,24 @@ import codecs
 import json
 import subprocess
 from collections import defaultdict
-from urlparse import urlparse
+
+import six
 
 try:
-    from HTMLParser import HTMLParser
+    from urlparse import urlparse
 except:
     pass
+
+if six.PY2:
+    try:
+        from HTMLParser import HTMLParser
+    except:
+        pass
+else:
+    try:
+        from html.parser import HTMLParser
+    except:
+        pass
 
 try:
     # from lxml import etree  # not exist on hadoop
@@ -147,7 +159,6 @@ class ConfigBase(object):
         basename = os.path.basename(path)
         ext = basename.split('.')[-1]
         self.ext = ext
-        print ext
         self.name = '.'.join(basename.split('.')[:-1])
         if not typ:
             if ext == 'conf':
@@ -540,7 +551,7 @@ def print_matrix(matrix):
 def print_dict(d, encoding='utf-8'):
     for k, v in d.iteritems():
         outline = u'{}: {}'.format(k, v)
-        print outline.encode(encoding)
+        print(outline.encode(encoding))
     return None
 
 

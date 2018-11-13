@@ -5,7 +5,12 @@ import os
 import sys
 import json
 import logging
-import cPickle as pickle
+import six
+
+if six.PY2:
+    import cPickle as pickle
+else:
+    import pickle
 
 try:
     import redis
