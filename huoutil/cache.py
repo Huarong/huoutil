@@ -19,14 +19,14 @@ except ImportError:
 
 
 class RedisCache(object):
-    def __init__(self, host='localhost', port=6379, db=0):
+    def __init__(self, host='localhost', port=6379, db=0, decode_responses=False):
         self.host = host
         self.port = port
         self.db = db
         try:
-            _cache = redis.StrictRedis(
-                host=self.host, port=self.port, db=self.db)
-        except:
+            _cache = redis.StrictRedis(host=self.host, port=self.port, db=self.db, decode_responses=decode_responses)
+        except Exception as e:
+            logging.warning(e)
             logging.warning('Connect redis failed. The cache will not work')
             return None
         self._cache = _cache
