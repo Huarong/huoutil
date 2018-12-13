@@ -110,3 +110,10 @@ class RedisCache(object):
         if ex is None:
             ex = self._expire
         return self._cache.set(k, nv, ex=ex)
+
+    def delete(self, *ks):
+        """
+        ks: one or list of keys
+        """
+        return self._cache.delete(*ks)
+
