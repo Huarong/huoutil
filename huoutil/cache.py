@@ -23,13 +23,7 @@ class RedisCache(object):
         self.host = host
         self.port = port
         self.db = db
-        try:
-            _cache = redis.StrictRedis(host=self.host, port=self.port, db=self.db, decode_responses=decode_responses)
-        except Exception as e:
-            logging.warning(e)
-            logging.warning('Connect redis failed. The cache will not work')
-            return None
-        self._cache = _cache
+        self._cache = redis.StrictRedis(host=self.host, port=self.port, db=self.db, decode_responses=decode_responses)
         self._key_sep = '\x01'
         self._expire = None
 
