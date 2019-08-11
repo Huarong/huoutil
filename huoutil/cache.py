@@ -69,20 +69,20 @@ class RedisCache(object):
             ex = self._expire
         return self._cache.set(k, nv, ex=ex)
 
-    def get_json(self, k):
+    def get_json(self, k, decoder=None):
         k = self._wrap_key(k)
         jsn_str = self._cache.get(k)
         if jsn_str is None:
             return None
         else:
-            return json.loads(jsn_str)
+            return json.loads(jsn_str, cls=decoder)
 
-    def set_json(self, k, v, ex=None):
+    def set_json(self, k, v, ex=None, encoder=None):
         k = self._wrap_key(k)
         if v is None:
             nv = None
         else:
-            nv = json.dumps(v, ensure_ascii=False)
+            nv = json.dumps(v, ensure_ascii=False, cls=encoder)
         if ex is None:
             ex = self._expire
         return self._cache.set(k, nv, ex=ex)
@@ -110,4 +110,3 @@ class RedisCache(object):
         ks: one or list of keys
         """
         return self._cache.delete(*ks)
-
