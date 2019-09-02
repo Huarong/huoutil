@@ -320,7 +320,7 @@ def init_log(
     err_handler.setFormatter(formatter)
     handler.suffix = '%Y-%m-%d'
     logger.addHandler(err_handler)
-    return None
+    return logger
 
 
 def log_kv(seq,
