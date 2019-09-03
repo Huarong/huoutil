@@ -1,7 +1,5 @@
-from distutils.core import Extension
 from setuptools import setup
 import huoutil
-import os
 
 setup(
     name='huoutil',

@@ -77,7 +77,7 @@ def md5(s):
 def test():
     def print_list(lst):
         for e in lst:
-            print e.encode('utf-8')
+            print(e.encode('utf-8'))
 
 
 if __name__ == '__main__':

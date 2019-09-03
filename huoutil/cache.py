@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 # coding=utf-8
 
-import os
-import sys
 import json
-import logging
 import six
 
 if six.PY2:
