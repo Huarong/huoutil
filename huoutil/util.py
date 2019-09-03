@@ -558,7 +558,7 @@ def print_dict(d, encoding='utf-8'):
 def p(obj, encoding='utf-8', indent=0):
     indent = indent
     typ = type(obj)
-    if typ == str or typ == unicode:
+    if typ in (six.binary_type, six.text_type):
         logging.info(' ' * indent, )
         logging.info(obj.encode(encoding))
     elif typ == list or typ == tuple:
@@ -682,7 +682,7 @@ def xml2list(xml):
     except ET.ParseError:
         return None
     subsent_list = para.findall('./*/subsent')
-    ret = [unicode(subsent.text) for subsent in subsent_list]
+    ret = [six.text_type(subsent.text) for subsent in subsent_list]
     return ret
 
 
@@ -771,7 +771,7 @@ def test_chunk():
 
 def is_number(s):
     try:
-        f = float(s)
+        _ = float(s)
         return True
     except ValueError:
         return False
@@ -783,7 +783,7 @@ def find_host(s):
 
 
 def url2host(url):
-    if type(url) in (str, unicode):
+    if isinstance(url, (six.binary_type, six.text_type)):
         su = urlparse(url)
     else:
         su = url
@@ -848,7 +848,6 @@ def iter_file_by_key(path,
                      func=None,
                      filter_func=None):
     info_list = []
-    last_key = None
     key = None
     with codecs.open(path, encoding=encoding) as f:
 
@@ -930,7 +929,7 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
     header = {}
     sender_name, sender_mail = None, None
     if sender:
-        if isinstance(sender, str) or isinstance(sender, unicode):
+        if isinstance(sender, (six.binary_type, six.text_type)):
             sender_name, sender_mail = sender, sender
         elif (isinstance(sender, list)
               or isinstance(sender, tuple)) and len(sender) == 2:
@@ -946,7 +945,7 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
             [u'{}: {}'.format(k, v) for k, v in header.items()])
         subject = '$(echo -e "{}\n{}")'.format(subject, header_str)
 
-    if isinstance(user_list, str) or isinstance(user_list, unicode):
+    if isinstance(user_list, (six.binary_type, six.text_type)):
         user_list = [
             user_list,
         ]
