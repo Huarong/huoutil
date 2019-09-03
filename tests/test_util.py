@@ -1,5 +1,7 @@
 import os
+import sys
 
+sys.path.insert(0, '.')
 from huoutil.util import ConfigBase
 
 TESTDATA = './tests/testdata/'

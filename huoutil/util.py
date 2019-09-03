@@ -192,7 +192,7 @@ class ConfigBase(object):
                     value = self.cast(key, value)
                     self.__setattr__(key, value)
                 else:
-                    logging.warn('invalid key {0}'.format(key))
+                    logging.warning('invalid key {0}'.format(key))
         return None
 
     def load_py_conf(self, path):
@@ -215,7 +215,7 @@ class ConfigBase(object):
                     value = self.cast(key, value)
                     self.__setattr__(key, value)
                 else:
-                    logging.warn('invalid key {0}'.format(key))
+                    logging.warning('invalid key {0}'.format(key))
         return None
 
     def dump(self, path):
