@@ -35,8 +35,7 @@ class HuoListTest(unittest.TestCase):
         self.assertEqual(longest_range([1, 1, 1, 0, 0]), (0, 3))
         self.assertEqual(longest_range([1, 1, 1, 0, 0, 1, 1, 1]), (0, 3))
         self.assertEqual(longest_range([0, 0, 0, 0, 0]), None)
-        self.assertEqual(
-            longest_range([0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0]), (1, 5))
+        self.assertEqual(longest_range([0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0]), (1, 5))
 
 
 if __name__ == '__main__':

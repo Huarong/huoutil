@@ -168,9 +168,7 @@ class ConfigBase(object):
         elif typ == 'json':
             self.load_json_conf(path)
         else:
-            raise ValueError(
-                'invalid conf type: {0}. Please assign to  "typ" explicitly'.
-                format(typ))
+            raise ValueError('invalid conf type: {0}. Please assign to  "typ" explicitly'.format(typ))
         return None
 
     def load_sh_conf(self, path):
@@ -238,8 +236,7 @@ class ConfigBase(object):
 
 def load_python_conf(conf_path, module_name='config'):
     import imp
-    config = imp.load_module(module_name, open(conf_path), conf_path,
-                             ('', 'r', imp.PY_SOURCE))
+    config = imp.load_module(module_name, open(conf_path), conf_path, ('', 'r', imp.PY_SOURCE))
     return config
 
 
@@ -249,14 +246,13 @@ def mkdir(dir_name):
     return None
 
 
-def init_log(
-        log_path,
-        level=logging.INFO,
-        stdout=False,
-        when="D",
-        backup=7,
-        format="%(levelname)s: %(asctime)s: %(filename)s:%(lineno)d * %(thread)d %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"):
+def init_log(log_path,
+             level=logging.INFO,
+             stdout=False,
+             when="D",
+             backup=7,
+             format="%(levelname)s: %(asctime)s: %(filename)s:%(lineno)d * %(thread)d %(message)s",
+             datefmt="%Y-%m-%d %H:%M:%S"):
     """
     init_log - initialize log module
 
@@ -306,16 +302,14 @@ def init_log(
         stdout_handler.setFormatter(formatter)
         logger.addHandler(stdout_handler)
 
-    handler = logging.handlers.TimedRotatingFileHandler(
-        log_path + ".log", when=when, backupCount=backup)
+    handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log", when=when, backupCount=backup)
     handler.setLevel(level)
     handler.setFormatter(formatter)
     # https://www.jianshu.com/p/25f70905ae9d
     handler.suffix = '%Y-%m-%d'
     logger.addHandler(handler)
 
-    err_handler = logging.handlers.TimedRotatingFileHandler(
-        log_path + ".log.wf", when=when, backupCount=backup)
+    err_handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log.wf", when=when, backupCount=backup)
     err_handler.setLevel(logging.WARNING)
     err_handler.setFormatter(formatter)
     handler.suffix = '%Y-%m-%d'
@@ -323,12 +317,7 @@ def init_log(
     return logger
 
 
-def log_kv(seq,
-           log=logging.info,
-           prefix='',
-           postfix='',
-           item_sep=';',
-           vv_sep=','):
+def log_kv(seq, log=logging.info, prefix='', postfix='', item_sep=';', vv_sep=','):
     if not seq:
         lst = []
     elif isinstance(seq, dict):
@@ -357,13 +346,7 @@ def log_kv(seq,
     return None
 
 
-def file2dict(path,
-              kn=0,
-              vn=1,
-              sep='\t',
-              encoding='utf-8',
-              ktype=None,
-              vtype=None):
+def file2dict(path, kn=0, vn=1, sep='\t', encoding='utf-8', ktype=None, vtype=None):
     """
     build a dict from a file.
     @param path: input file path
@@ -416,15 +399,7 @@ def dict2file(d, path, encoding='utf-8', kfunc=None, vfunc=None, sep='\t'):
     return None
 
 
-def file2ddict(path,
-               k1n=0,
-               k2n=1,
-               vn=2,
-               sep='\t',
-               encoding='utf-8',
-               k1type=None,
-               k2type=None,
-               vtype=None):
+def file2ddict(path, k1n=0, k2n=1, vn=2, sep='\t', encoding='utf-8', k1type=None, k2type=None, vtype=None):
     """
     build a two level dict from a file.
     @param path: input file path
@@ -448,10 +423,7 @@ def file2ddict(path,
                 if k2type:
                     k2 = k2type(k2)
                 if vn is None:
-                    value = [
-                        tokens[i] for i in range(len(tokens))
-                        if i != k1n and i != k2n
-                    ]
+                    value = [tokens[i] for i in range(len(tokens)) if i != k1n and i != k2n]
                 else:
                     value = tokens[vn]
                 if vtype:
@@ -462,13 +434,7 @@ def file2ddict(path,
     return d
 
 
-def ddict2file(d,
-               path,
-               encoding='utf-8',
-               k1func=None,
-               k2func=None,
-               vfunc=None,
-               sep='\t'):
+def ddict2file(d, path, encoding='utf-8', k1func=None, k2func=None, vfunc=None, sep='\t'):
     """
     Dump a two level dict to a file.
     @param d: the dict to be dumpped
@@ -798,9 +764,8 @@ def norm_url(url):
     new_url = su.netloc + su.path
     if su.scheme:
         new_url = su.scheme + "://" + new_url
-    if new_url in ('3g.163.com/touch/article.html', 'wenku.baidu.com/link',
-                   'baike.baidu.com/link', 'zhidao.baidu.com/link',
-                   'www.welltang.com/webapp/baidu.php'):
+    if new_url in ('3g.163.com/touch/article.html', 'wenku.baidu.com/link', 'baike.baidu.com/link',
+                   'zhidao.baidu.com/link', 'www.welltang.com/webapp/baidu.php'):
         return url
     else:
         return new_url
@@ -841,12 +806,7 @@ def iter_by_key(iterable, key_idx=0, func=None, filter_func=None):
         yield (key, info_list)
 
 
-def iter_file_by_key(path,
-                     key_idx=0,
-                     encoding='utf-8',
-                     sep='\t',
-                     func=None,
-                     filter_func=None):
+def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None, filter_func=None):
     info_list = []
     key = None
     with codecs.open(path, encoding=encoding) as f:
@@ -858,8 +818,7 @@ def iter_file_by_key(path,
             new_func = lambda line: func(line_func(line))
         else:
             new_func = line_func
-        for key, info_list in iter_by_key(
-                f, key_idx=key_idx, func=new_func, filter_func=filter_func):
+        for key, info_list in iter_by_key(f, key_idx=key_idx, func=new_func, filter_func=filter_func):
             yield (key, info_list)
 
 
@@ -931,8 +890,7 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
     if sender:
         if isinstance(sender, (six.binary_type, six.text_type)):
             sender_name, sender_mail = sender, sender
-        elif (isinstance(sender, list)
-              or isinstance(sender, tuple)) and len(sender) == 2:
+        elif (isinstance(sender, list) or isinstance(sender, tuple)) and len(sender) == 2:
             sender_name, sender_mail = sender
         else:
             pass
@@ -941,16 +899,14 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
     if html:
         header['Content-Type'] = 'text/html'
     if header:
-        header_str = '\n'.join(
-            [u'{}: {}'.format(k, v) for k, v in header.items()])
+        header_str = '\n'.join([u'{}: {}'.format(k, v) for k, v in header.items()])
         subject = '$(echo -e "{}\n{}")'.format(subject, header_str)
 
     if isinstance(user_list, (six.binary_type, six.text_type)):
         user_list = [
             user_list,
         ]
-    cmd = 'echo "{}" | mailx -s "{}" {}'.format(content, subject,
-                                                ','.join(user_list))
+    cmd = 'echo "{}" | mailx -s "{}" {}'.format(content, subject, ','.join(user_list))
     subprocess.call(cmd, shell=True)
     return None
 

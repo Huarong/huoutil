@@ -23,4 +23,3 @@ def test_config():
     assert cfg.NAME == 'Tian'
     assert cfg.AGE == 32
     assert cfg.LOVE == ['apple', 'banana']
-
