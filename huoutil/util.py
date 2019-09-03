@@ -12,7 +12,7 @@ import pickle
 import codecs
 import json
 import subprocess
-from collections import defaultdict
+from collections import defaultdict, Mapping
 
 import six
 
@@ -968,7 +968,7 @@ def update_dict(d, u):
     From: http://stackoverflow.com/a/3233356/1282982
     """
     for k, v in u.iteritems():
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, Mapping):
             r = update_dict(d.get(k, {}), v)
             d[k] = r
         else:
