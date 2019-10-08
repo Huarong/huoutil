@@ -1,6 +1,6 @@
 name: Python package
 
-on: [push]
+on: [push, release]
 
 jobs:
   build:
@@ -32,3 +32,15 @@ jobs:
       run: |
         pip install pytest
         pytest
+
+  publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Publish package
+      if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@master
+      with:
+        user: __token__
+        password: ${{ secrets.pypi_password }}
