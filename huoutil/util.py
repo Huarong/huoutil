@@ -354,12 +354,15 @@ def file2dict(path, kn=0, vn=1, sep='\t', encoding='utf-8', ktype=None, vtype=No
     @param vn: the column number of value
     @param sep: the field seperator
     @param encoding: the input encoding
+    @param ktype: custom a function applied to the key of each line
+    @param vtype: custom a function applied to the value of each line
     @return: a key value dict
-
     """
     d = {}
     with codecs.open(path, encoding=encoding) as fp:
         for line in fp:
+            if not line.strip():
+                continue
             tokens = line.rstrip('\n\r ').split(sep)
             try:
                 key = tokens[kn]
@@ -374,6 +377,49 @@ def file2dict(path, kn=0, vn=1, sep='\t', encoding='utf-8', ktype=None, vtype=No
                 d[key] = value
             except IndexError:
                 logging.exception('invalid line: %s' % line)
+    return d
+
+
+def file2dictlist(path, kn=0, vn=1, sep='\t', encoding='utf-8', dup=True, ktype=None, vtype=None):
+    """
+    Build a dict from a file merging the values of same key into list.
+    @param path: input file path
+    @param kn: the column number of key
+    @param vn: the column number of value
+    @param sep: the field seperator
+    @param encoding: the input encoding
+    @param dup: True means allow values of list duplicate, False means values of list is unique
+    @param ktype: custom a function applied to the key of each line
+    @param vtype: custom a function applied to the value of each line
+    @return: a key value dict
+    """
+    d = defaultdict(list)
+    with codecs.open(path, encoding=encoding) as fp:
+        for line in fp:
+            if not line.strip():
+                continue
+            tokens = line.rstrip('\n\r ').split(sep)
+            try:
+                key = tokens[kn]
+                if ktype:
+                    key = ktype(key)
+                if vn is None:
+                    value = tokens[:kn] + tokens[kn + 1:]
+                else:
+                    value = tokens[vn]
+                if vtype:
+                    value = vtype(value)
+                if isinstance(value, list):
+                    d[key].extend(value)
+                else:
+                    d[key].append(value)
+            except:
+                logging.exception('invalid line: %s' % line)
+        for key in d.keys():
+            if dup:
+                d[key] = sorted(d[key])
+            else:
+                d[key] = sorted(list(set(d[key])))
     return d
 
 
