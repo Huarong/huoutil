@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# coding=utf-8
+
 import os
 import sys
 
@@ -27,11 +30,11 @@ def test_config():
 
 def test_file2dictlist():
     data = file2dictlist('./tests/testdata/test_file2dictlist', kn=0, vn=1)
-    assert data['胰岛素'] == ['低血糖', '呕吐']
+    assert data[u'胰岛素'] == [u'低血糖', u'呕吐']
     data = file2dictlist('./tests/testdata/test_file2dictlist', kn=0, vn=None, dup=False)
-    assert data['胰岛素'] == ['低血糖', '呕吐', '子宫收缩']
-    assert data['泻药'] == []
-    assert data['催吐药'] == ['呕吐 排尿困难']
+    assert data[u'胰岛素'] == [u'低血糖', u'呕吐', u'子宫收缩']
+    assert data[u'泻药'] == []
+    assert data[u'催吐药'] == [u'呕吐 排尿困难']
     data = file2dictlist('./tests/testdata/test_file2dictlist', kn=0, vn=None)
-    assert data['胰岛素'] == ['低血糖', '呕吐', '子宫收缩', '子宫收缩', '子宫收缩']
+    assert data[u'胰岛素'] == [u'低血糖', u'呕吐', u'子宫收缩', u'子宫收缩', u'子宫收缩']
 
