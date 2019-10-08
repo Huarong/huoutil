@@ -1,6 +1,6 @@
 name: Python package
 
-on: [push, release]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -38,6 +38,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: build wheel
+      run: |
+        python setup.py sdist bdist_wheel
     - name: Publish package
       if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@master
