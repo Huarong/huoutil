@@ -541,6 +541,24 @@ def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None):
     return set(file2list(path, n=n, sep=sep, encoding=encoding, typ=typ))
 
 
+def set2file(d, path, encoding='utf-8', func=None):
+    """
+    Dump a set to a file.
+    @param d: the set to be dumpped
+    @param path: the output file path
+    @param encoding: the output file encoding
+    @param func: a function applied to the value
+    @return: always return None
+    """
+    with codecs.open(path, 'wb', encoding=encoding) as fo:
+        for value in d:
+            if func is not None:
+                value = func(value)
+            outline = u'{}\n'.format(value)
+            fo.write(outline)
+    return None
+
+
 def cout(s, encoding='utf-8', newline=True):
     sys.stdout.write(s.encode(encoding))
     if newline:
