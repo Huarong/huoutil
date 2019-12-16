@@ -12,7 +12,7 @@ import pickle
 import codecs
 import json
 import subprocess
-from collections import defaultdict
+from collections import defaultdict, Mapping
 
 import six
 
@@ -168,9 +168,7 @@ class ConfigBase(object):
         elif typ == 'json':
             self.load_json_conf(path)
         else:
-            raise ValueError(
-                'invalid conf type: {0}. Please assign to  "typ" explicitly'.
-                format(typ))
+            raise ValueError('invalid conf type: {0}. Please assign to  "typ" explicitly'.format(typ))
         return None
 
     def load_sh_conf(self, path):
@@ -192,7 +190,7 @@ class ConfigBase(object):
                     value = self.cast(key, value)
                     self.__setattr__(key, value)
                 else:
-                    logging.warn('invalid key {0}'.format(key))
+                    logging.warning('invalid key {0}'.format(key))
         return None
 
     def load_py_conf(self, path):
@@ -215,7 +213,7 @@ class ConfigBase(object):
                     value = self.cast(key, value)
                     self.__setattr__(key, value)
                 else:
-                    logging.warn('invalid key {0}'.format(key))
+                    logging.warning('invalid key {0}'.format(key))
         return None
 
     def dump(self, path):
@@ -238,8 +236,7 @@ class ConfigBase(object):
 
 def load_python_conf(conf_path, module_name='config'):
     import imp
-    config = imp.load_module(module_name, open(conf_path), conf_path,
-                             ('', 'r', imp.PY_SOURCE))
+    config = imp.load_module(module_name, open(conf_path), conf_path, ('', 'r', imp.PY_SOURCE))
     return config
 
 
@@ -249,14 +246,13 @@ def mkdir(dir_name):
     return None
 
 
-def init_log(
-        log_path,
-        level=logging.INFO,
-        stdout=False,
-        when="D",
-        backup=7,
-        format="%(levelname)s: %(asctime)s: %(filename)s:%(lineno)d * %(thread)d %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"):
+def init_log(log_path,
+             level=logging.INFO,
+             stdout=False,
+             when="D",
+             backup=7,
+             format="%(levelname)s: %(asctime)s: %(filename)s:%(lineno)d * %(thread)d %(message)s",
+             datefmt="%Y-%m-%d %H:%M:%S"):
     """
     init_log - initialize log module
 
@@ -306,29 +302,22 @@ def init_log(
         stdout_handler.setFormatter(formatter)
         logger.addHandler(stdout_handler)
 
-    handler = logging.handlers.TimedRotatingFileHandler(
-        log_path + ".log", when=when, backupCount=backup)
+    handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log", when=when, backupCount=backup)
     handler.setLevel(level)
     handler.setFormatter(formatter)
     # https://www.jianshu.com/p/25f70905ae9d
     handler.suffix = '%Y-%m-%d'
     logger.addHandler(handler)
 
-    err_handler = logging.handlers.TimedRotatingFileHandler(
-        log_path + ".log.wf", when=when, backupCount=backup)
+    err_handler = logging.handlers.TimedRotatingFileHandler(log_path + ".log.wf", when=when, backupCount=backup)
     err_handler.setLevel(logging.WARNING)
     err_handler.setFormatter(formatter)
     handler.suffix = '%Y-%m-%d'
     logger.addHandler(err_handler)
-    return None
+    return logger
 
 
-def log_kv(seq,
-           log=logging.info,
-           prefix='',
-           postfix='',
-           item_sep=';',
-           vv_sep=','):
+def log_kv(seq, log=logging.info, prefix='', postfix='', item_sep=';', vv_sep=','):
     if not seq:
         lst = []
     elif isinstance(seq, dict):
@@ -357,13 +346,7 @@ def log_kv(seq,
     return None
 
 
-def file2dict(path,
-              kn=0,
-              vn=1,
-              sep='\t',
-              encoding='utf-8',
-              ktype=None,
-              vtype=None):
+def file2dict(path, kn=0, vn=1, sep='\t', encoding='utf-8', ktype=None, vtype=None):
     """
     build a dict from a file.
     @param path: input file path
@@ -371,12 +354,15 @@ def file2dict(path,
     @param vn: the column number of value
     @param sep: the field seperator
     @param encoding: the input encoding
+    @param ktype: custom a function applied to the key of each line
+    @param vtype: custom a function applied to the value of each line
     @return: a key value dict
-
     """
     d = {}
     with codecs.open(path, encoding=encoding) as fp:
         for line in fp:
+            if not line.strip():
+                continue
             tokens = line.rstrip('\n\r ').split(sep)
             try:
                 key = tokens[kn]
@@ -391,6 +377,49 @@ def file2dict(path,
                 d[key] = value
             except IndexError:
                 logging.exception('invalid line: %s' % line)
+    return d
+
+
+def file2dictlist(path, kn=0, vn=1, sep='\t', encoding='utf-8', dup=True, ktype=None, vtype=None):
+    """
+    Build a dict from a file merging the values of same key into list.
+    @param path: input file path
+    @param kn: the column number of key
+    @param vn: the column number of value
+    @param sep: the field seperator
+    @param encoding: the input encoding
+    @param dup: True means allow values of list duplicate, False means values of list is unique
+    @param ktype: custom a function applied to the key of each line
+    @param vtype: custom a function applied to the value of each line
+    @return: a key value dict
+    """
+    d = defaultdict(list)
+    with codecs.open(path, encoding=encoding) as fp:
+        for line in fp:
+            if not line.strip():
+                continue
+            tokens = line.rstrip('\n\r ').split(sep)
+            try:
+                key = tokens[kn]
+                if ktype:
+                    key = ktype(key)
+                if vn is None:
+                    value = tokens[:kn] + tokens[kn + 1:]
+                else:
+                    value = tokens[vn]
+                if vtype:
+                    value = vtype(value)
+                if isinstance(value, list):
+                    d[key].extend(value)
+                else:
+                    d[key].append(value)
+            except:
+                logging.exception('invalid line: %s' % line)
+        for key in d.keys():
+            if dup:
+                d[key] = sorted(d[key])
+            else:
+                d[key] = sorted(list(set(d[key])))
     return d
 
 
@@ -416,15 +445,7 @@ def dict2file(d, path, encoding='utf-8', kfunc=None, vfunc=None, sep='\t'):
     return None
 
 
-def file2ddict(path,
-               k1n=0,
-               k2n=1,
-               vn=2,
-               sep='\t',
-               encoding='utf-8',
-               k1type=None,
-               k2type=None,
-               vtype=None):
+def file2ddict(path, k1n=0, k2n=1, vn=2, sep='\t', encoding='utf-8', k1type=None, k2type=None, vtype=None):
     """
     build a two level dict from a file.
     @param path: input file path
@@ -448,10 +469,7 @@ def file2ddict(path,
                 if k2type:
                     k2 = k2type(k2)
                 if vn is None:
-                    value = [
-                        tokens[i] for i in range(len(tokens))
-                        if i != k1n and i != k2n
-                    ]
+                    value = [tokens[i] for i in range(len(tokens)) if i != k1n and i != k2n]
                 else:
                     value = tokens[vn]
                 if vtype:
@@ -462,13 +480,7 @@ def file2ddict(path,
     return d
 
 
-def ddict2file(d,
-               path,
-               encoding='utf-8',
-               k1func=None,
-               k2func=None,
-               vfunc=None,
-               sep='\t'):
+def ddict2file(d, path, encoding='utf-8', k1func=None, k2func=None, vfunc=None, sep='\t'):
     """
     Dump a two level dict to a file.
     @param d: the dict to be dumpped
@@ -558,7 +570,7 @@ def print_dict(d, encoding='utf-8'):
 def p(obj, encoding='utf-8', indent=0):
     indent = indent
     typ = type(obj)
-    if typ == str or typ == unicode:
+    if typ in (six.binary_type, six.text_type):
         logging.info(' ' * indent, )
         logging.info(obj.encode(encoding))
     elif typ == list or typ == tuple:
@@ -682,7 +694,7 @@ def xml2list(xml):
     except ET.ParseError:
         return None
     subsent_list = para.findall('./*/subsent')
-    ret = [unicode(subsent.text) for subsent in subsent_list]
+    ret = [six.text_type(subsent.text) for subsent in subsent_list]
     return ret
 
 
@@ -771,7 +783,7 @@ def test_chunk():
 
 def is_number(s):
     try:
-        f = float(s)
+        _ = float(s)
         return True
     except ValueError:
         return False
@@ -783,7 +795,7 @@ def find_host(s):
 
 
 def url2host(url):
-    if type(url) in (str, unicode):
+    if isinstance(url, (six.binary_type, six.text_type)):
         su = urlparse(url)
     else:
         su = url
@@ -798,9 +810,8 @@ def norm_url(url):
     new_url = su.netloc + su.path
     if su.scheme:
         new_url = su.scheme + "://" + new_url
-    if new_url in ('3g.163.com/touch/article.html', 'wenku.baidu.com/link',
-                   'baike.baidu.com/link', 'zhidao.baidu.com/link',
-                   'www.welltang.com/webapp/baidu.php'):
+    if new_url in ('3g.163.com/touch/article.html', 'wenku.baidu.com/link', 'baike.baidu.com/link',
+                   'zhidao.baidu.com/link', 'www.welltang.com/webapp/baidu.php'):
         return url
     else:
         return new_url
@@ -841,14 +852,8 @@ def iter_by_key(iterable, key_idx=0, func=None, filter_func=None):
         yield (key, info_list)
 
 
-def iter_file_by_key(path,
-                     key_idx=0,
-                     encoding='utf-8',
-                     sep='\t',
-                     func=None,
-                     filter_func=None):
+def iter_file_by_key(path, key_idx=0, encoding='utf-8', sep='\t', func=None, filter_func=None):
     info_list = []
-    last_key = None
     key = None
     with codecs.open(path, encoding=encoding) as f:
 
@@ -859,8 +864,7 @@ def iter_file_by_key(path,
             new_func = lambda line: func(line_func(line))
         else:
             new_func = line_func
-        for key, info_list in iter_by_key(
-                f, key_idx=key_idx, func=new_func, filter_func=filter_func):
+        for key, info_list in iter_by_key(f, key_idx=key_idx, func=new_func, filter_func=filter_func):
             yield (key, info_list)
 
 
@@ -930,10 +934,9 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
     header = {}
     sender_name, sender_mail = None, None
     if sender:
-        if isinstance(sender, str) or isinstance(sender, unicode):
+        if isinstance(sender, (six.binary_type, six.text_type)):
             sender_name, sender_mail = sender, sender
-        elif (isinstance(sender, list)
-              or isinstance(sender, tuple)) and len(sender) == 2:
+        elif (isinstance(sender, list) or isinstance(sender, tuple)) and len(sender) == 2:
             sender_name, sender_mail = sender
         else:
             pass
@@ -942,16 +945,14 @@ def send_mail_by_mailx(subject, content, user_list, sender=None, html=False):
     if html:
         header['Content-Type'] = 'text/html'
     if header:
-        header_str = '\n'.join(
-            [u'{}: {}'.format(k, v) for k, v in header.items()])
+        header_str = '\n'.join([u'{}: {}'.format(k, v) for k, v in header.items()])
         subject = '$(echo -e "{}\n{}")'.format(subject, header_str)
 
-    if isinstance(user_list, str) or isinstance(user_list, unicode):
+    if isinstance(user_list, (six.binary_type, six.text_type)):
         user_list = [
             user_list,
         ]
-    cmd = 'echo "{}" | mailx -s "{}" {}'.format(content, subject,
-                                                ','.join(user_list))
+    cmd = 'echo "{}" | mailx -s "{}" {}'.format(content, subject, ','.join(user_list))
     subprocess.call(cmd, shell=True)
     return None
 
@@ -968,7 +969,7 @@ def update_dict(d, u):
     From: http://stackoverflow.com/a/3233356/1282982
     """
     for k, v in u.iteritems():
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, Mapping):
             r = update_dict(d.get(k, {}), v)
             d[k] = r
         else:

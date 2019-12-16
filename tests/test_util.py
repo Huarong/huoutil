@@ -1,12 +1,13 @@
+#!/usr/bin/env python
+# coding=utf-8
+
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../'))
-print sys.path
-
-from huoutil.util import *
-
-TESTDATA = './testdata/'
+sys.path.insert(0, '.')
+from huoutil.util import ConfigBase
+from huoutil.util import file2dictlist
+TESTDATA = './tests/testdata/'
 
 
 class Config(ConfigBase):
@@ -27,10 +28,13 @@ def test_config():
     assert cfg.LOVE == ['apple', 'banana']
 
 
-@timer
-def only_for_test_timer(a, b):
-    return a + b
+def test_file2dictlist():
+    data = file2dictlist('./tests/testdata/test_file2dictlist', kn=0, vn=1)
+    assert data[u'胰岛素'] == [u'低血糖', u'呕吐']
+    data = file2dictlist('./tests/testdata/test_file2dictlist', kn=0, vn=None, dup=False)
+    assert data[u'胰岛素'] == [u'低血糖', u'呕吐', u'子宫收缩']
+    assert data[u'泻药'] == []
+    assert data[u'催吐药'] == [u'呕吐 排尿困难']
+    data = file2dictlist('./tests/testdata/test_file2dictlist', kn=0, vn=None)
+    assert data[u'胰岛素'] == [u'低血糖', u'呕吐', u'子宫收缩', u'子宫收缩', u'子宫收缩']
 
-
-def test_timer():
-    assert 3 == only_for_test_timer(1, 2)
