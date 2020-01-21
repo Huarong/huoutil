@@ -346,7 +346,7 @@ def log_kv(seq, log=logging.info, prefix='', postfix='', item_sep=';', vv_sep=',
     return None
 
 
-def file2dict(path, kn=0, vn=1, sep='\t', encoding='utf-8', ktype=None, vtype=None):
+def file2dict(path, kn=0, vn=1, sep='\t', encoding='utf-8', ktype=None, vtype=None, skip_line=0):
     """
     build a dict from a file.
     @param path: input file path
@@ -356,12 +356,17 @@ def file2dict(path, kn=0, vn=1, sep='\t', encoding='utf-8', ktype=None, vtype=No
     @param encoding: the input encoding
     @param ktype: custom a function applied to the key of each line
     @param vtype: custom a function applied to the value of each line
+    @param skip_line: skip lines number
     @return: a key value dict
     """
     d = {}
+    line_number = 0
     with codecs.open(path, encoding=encoding) as fp:
         for line in fp:
             if not line.strip():
+                continue
+            line_number += 1
+            if line_number <= skip_line:
                 continue
             tokens = line.rstrip('\n\r ').split(sep)
             try:
@@ -380,7 +385,7 @@ def file2dict(path, kn=0, vn=1, sep='\t', encoding='utf-8', ktype=None, vtype=No
     return d
 
 
-def file2dictlist(path, kn=0, vn=1, sep='\t', encoding='utf-8', dup=True, ktype=None, vtype=None):
+def file2dictlist(path, kn=0, vn=1, sep='\t', encoding='utf-8', dup=True, ktype=None, vtype=None, skip_line=0):
     """
     Build a dict from a file merging the values of same key into list.
     @param path: input file path
@@ -391,12 +396,17 @@ def file2dictlist(path, kn=0, vn=1, sep='\t', encoding='utf-8', dup=True, ktype=
     @param dup: True means allow values of list duplicate, False means values of list is unique
     @param ktype: custom a function applied to the key of each line
     @param vtype: custom a function applied to the value of each line
+    @param skip_line: skip lines number
     @return: a key value dict
     """
     d = defaultdict(list)
+    line_number = 0
     with codecs.open(path, encoding=encoding) as fp:
         for line in fp:
             if not line.strip():
+                continue
+            line_number += 1
+            if line_number <= skip_line:
                 continue
             tokens = line.rstrip('\n\r ').split(sep)
             try:
@@ -506,21 +516,28 @@ def ddict2file(d, path, encoding='utf-8', k1func=None, k2func=None, vfunc=None, 
     return None
 
 
-def file2list(path, n=0, sep='\t', encoding='utf-8', typ=None):
+def file2list(path, n=0, sep='\t', encoding='utf-8', typ=None, skip_line=0):
     """
     build a list from a file.
     @param path: input file path
     @param kn: the column number of key
     @param sep: the field seperator
     @param encoding: the input encoding
+    @param skip_line: skip lines number
     @return: a list
 
     """
     d = []
     if not os.path.exists(path):
         return d
+    line_number = 0
     with codecs.open(path, encoding=encoding) as fp:
         for line in fp:
+            if not line.strip():
+                continue
+            line_number += 1
+            if line_number <= skip_line:
+                continue
             tokens = line.rstrip('\n\r ').split(sep)
             try:
                 value = tokens[n]
@@ -532,13 +549,13 @@ def file2list(path, n=0, sep='\t', encoding='utf-8', typ=None):
     return d
 
 
-def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None):
+def file2set(path, n=0, sep='\t', encoding='utf-8', typ=None, skip_line=0):
     """
     build a set from a file.
     The parameters are the same as file2list
     @return: a set
     """
-    return set(file2list(path, n=n, sep=sep, encoding=encoding, typ=typ))
+    return set(file2list(path, n=n, sep=sep, encoding=encoding, typ=typ, skip_line=skip_line))
 
 
 def set2file(d, path, encoding='utf-8', func=None):
