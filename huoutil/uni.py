@@ -81,7 +81,9 @@ def test():
 
 
 def DBC2SBC(data):
-    '''全角转半角 '''
+    '''
+    全角转半角
+    '''
     res = ""
     for uchar in data:
         inside_code = ord(uchar)
@@ -97,7 +99,9 @@ def DBC2SBC(data):
 
 
 def symbol_cn2en(data):
-    '''中文标点转英文标点'''
+    '''
+    中文标点转英文标点
+    '''
     if not data:
         return data
     d = {
@@ -125,7 +129,9 @@ def symbol_cn2en(data):
 
 
 def reverse_roman(data):
-    '''将罗马数字转到键盘可输入的字符'''
+    '''
+    将罗马数字转到键盘可输入的字符
+    '''
     if not data:
         return data
     d = {
@@ -159,9 +165,9 @@ def reverse_roman(data):
     return norm
 
 
-def clean_abnormal_char(data):
+def del_meaningless_char(data):
     '''
-    清洗异常字符
+    删除无意义字符
     '''
     if not data:
         return data
@@ -169,7 +175,7 @@ def clean_abnormal_char(data):
     return data
 
 
-def clean_data(
+def standard_string_format(
         data,
         ds=1,
         no_roman=1,
@@ -180,7 +186,8 @@ def clean_data(
         lower=0,
 ):
     '''
-    data:待清洗的数据
+    按照参数指定的样式格式化字符串
+    data:输入的字符串
     ds:是否要全角转半角，1表示是，0表示否
     no_roman：是否把罗马数字字符转成字母，1表示是，0表示否
     en_punc：是否把中文标点转英文标点，1表示是，0表示否
@@ -204,7 +211,7 @@ def clean_data(
     if no_roman:
         data = reverse_roman(data)
     if no_abnormal:
-        data = clean_abnormal_char(data)
+        data = del_meaningless_char(data)
     return data
 
 

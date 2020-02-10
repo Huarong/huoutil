@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, '.')
 from huoutil.util import ConfigBase
 from huoutil.util import file2dictlist, file2list, file2set
-from huoutil.uni import clean_data
+from huoutil.uni import standard_string_format
 TESTDATA = './tests/testdata/'
 
 
@@ -55,8 +55,8 @@ def test_file2dictlist():
 def test_cleandata():
     s = '贫血，头晕？【】［伯格］eN^? Ⅵ腹痛Ⅹ'
     tmp = 'Ⅰ、Ⅱ、Ⅲ、Ⅳ、Ⅴ、Ⅵ、Ⅶ、Ⅷ、Ⅸ、Ⅹ、Ⅺ、Ⅻ'
-    clean_s = clean_data(s,upper=1)
+    clean_s = standard_string_format(s,upper=1)
     assert clean_s == '贫血,头晕?[][伯格]ENVI腹痛X'
     s = 'Ⅰ、Ⅱ、Ⅲ、Ⅳ、Ⅴ、Ⅵ、Ⅶ、Ⅷ、Ⅸ、Ⅹ、Ⅺ、Ⅻ'
-    clean_s = clean_data(s,lower=1)
+    clean_s = standard_string_format(s,lower=1)
     assert clean_s == 'i、ii、iii、iv、v、vi、vii、viii、ix、x、xi、xii'
