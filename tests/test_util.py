@@ -7,6 +7,7 @@ import sys
 sys.path.insert(0, '.')
 from huoutil.util import ConfigBase
 from huoutil.util import file2dictlist, file2list, file2set
+from huoutil.uni import clean_data
 TESTDATA = './tests/testdata/'
 
 
@@ -49,3 +50,13 @@ def test_file2dictlist():
     assert data == ['子宫平滑肌抑制药', '胰岛素', '胰岛素']
     data = file2set('./tests/testdata/test_file2dictlist', n=0, skip_line=4)
     assert data == set(['子宫平滑肌抑制药', '胰岛素'])
+
+
+def test_cleandata():
+    s = '贫血，头晕？【】［伯格］eN^? Ⅵ腹痛Ⅹ'
+    tmp = 'Ⅰ、Ⅱ、Ⅲ、Ⅳ、Ⅴ、Ⅵ、Ⅶ、Ⅷ、Ⅸ、Ⅹ、Ⅺ、Ⅻ'
+    clean_s = clean_data(s,upper=1)
+    assert clean_s == '贫血,头晕?[][伯格]ENVI腹痛X'
+    s = 'Ⅰ、Ⅱ、Ⅲ、Ⅳ、Ⅴ、Ⅵ、Ⅶ、Ⅷ、Ⅸ、Ⅹ、Ⅺ、Ⅻ'
+    clean_s = clean_data(s,lower=1)
+    assert clean_s == 'i、ii、iii、iv、v、vi、vii、viii、ix、x、xi、xii'
