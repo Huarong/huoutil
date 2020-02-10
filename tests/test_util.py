@@ -47,7 +47,7 @@ def test_file2dictlist():
     data = file2dictlist('./tests/testdata/test_file2dictlist', kn=0, vn=None, skip_line=8)
     assert data == {}
     data = file2list('./tests/testdata/test_file2dictlist', n=0, skip_line=4)
-    assert data == ['子宫平滑肌抑制药', '胰岛素', '胰岛素']
+    assert data == [u'子宫平滑肌抑制药', u'胰岛素', u'胰岛素']
     data = file2set('./tests/testdata/test_file2dictlist', n=0, skip_line=4)
     assert data == set(['子宫平滑肌抑制药', '胰岛素'])
 
