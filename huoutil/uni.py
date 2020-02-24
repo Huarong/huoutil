@@ -171,7 +171,7 @@ def del_meaningless_char(data):
     '''
     if not data:
         return data
-    data = data.replace('^?', '').replace('\x7f', '')
+    data = data.replace('^?', '').replace('\x7f', '').replace("､", "、")
     return data
 
 
