@@ -64,7 +64,7 @@ def test_cleandata():
 
 def test_load_python_conf():
     conf_path = os.path.join(TESTDATA, 'test_python.conf')
-    newconfig = load_python_conf(conf_path)
+    newconfig = load_python_conf(conf_path, default_property=True)
     assert newconfig.bf_fpmutual_manrule == True
     assert newconfig.askdjsldlk == None
     newconfig.bf_fpmutual_manrule = "OK平"

@@ -247,10 +247,13 @@ class New_config(object):
             return None
 
 
-def load_python_conf(conf_path, module_name='config'):
+def load_python_conf(conf_path, module_name='config', default_property=False):
     import imp
     config = imp.load_module(module_name, open(conf_path), conf_path, ('', 'r', imp.PY_SOURCE))
-    newconfig = New_config(config)
+    if default_property:
+        newconfig = New_config(config)
+    else:
+        newconfig = config
     return newconfig
 
 
