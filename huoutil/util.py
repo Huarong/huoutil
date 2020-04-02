@@ -234,10 +234,24 @@ class ConfigBase(object):
         return self.__str__()
 
 
+class New_config(object):
+    def __init__(self, obj):
+        for name, value in obj.__dict__.items():
+            if name.startswith('__'):
+                continue
+            else:
+                setattr(self, name, value)
+
+    def __getattr__(self, attr):
+        if attr not in self.__dict__:
+            return None
+
+
 def load_python_conf(conf_path, module_name='config'):
     import imp
     config = imp.load_module(module_name, open(conf_path), conf_path, ('', 'r', imp.PY_SOURCE))
-    return config
+    newconfig = New_config(config)
+    return newconfig
 
 
 def mkdir(dir_name):
