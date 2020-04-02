@@ -234,8 +234,9 @@ class ConfigBase(object):
         return self.__str__()
 
 
-class New_config(object):
-    def __init__(self, obj):
+class NewConfig(object):
+    def __init__(self, obj, default_property=False):
+        self._default_property = default_property
         for name, value in obj.__dict__.items():
             if name.startswith('__'):
                 continue
@@ -243,17 +244,16 @@ class New_config(object):
                 setattr(self, name, value)
 
     def __getattr__(self, attr):
-        if attr not in self.__dict__:
-            return None
+        if self._default_property:
+            if attr not in self.__dict__:
+                return None
+        raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, attr))
 
 
 def load_python_conf(conf_path, module_name='config', default_property=False):
     import imp
     config = imp.load_module(module_name, open(conf_path), conf_path, ('', 'r', imp.PY_SOURCE))
-    if default_property:
-        newconfig = New_config(config)
-    else:
-        newconfig = config
+    newconfig = NewConfig(config, default_property)
     return newconfig
 
 

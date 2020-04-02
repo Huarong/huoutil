@@ -8,6 +8,7 @@ sys.path.insert(0, '.')
 from huoutil.util import ConfigBase
 from huoutil.util import file2dictlist, file2list, file2set, load_python_conf
 from huoutil.uni import standard_string_format
+import pytest
 TESTDATA = './tests/testdata/'
 
 
@@ -70,3 +71,7 @@ def test_load_python_conf():
     newconfig.bf_fpmutual_manrule = "OK平"
     assert newconfig.bf_fpmutual_manrule == "OK平"
     assert newconfig.askdjsldlk == None
+
+    newconfig = load_python_conf(conf_path, default_property=False)
+    with pytest.raises(AttributeError):
+        assert newconfig.sd23sdfsd == None
