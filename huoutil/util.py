@@ -313,6 +313,8 @@ def init_log(log_path,
     if not os.path.isdir(dir):
         os.makedirs(dir)
 
+    #该logger为root logger，其上可能会被加入多个StreamHandler输出到std,
+    #一般我们只需要一个stdout就行，所以在stdout新加之前，去掉root logger上原有的所有StreamHandler
     for handler in logger.handlers:
         if isinstance(handler, logging.StreamHandler):
             logger.removeHandler(handler)
