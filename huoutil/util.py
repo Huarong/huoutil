@@ -313,6 +313,10 @@ def init_log(log_path,
     if not os.path.isdir(dir):
         os.makedirs(dir)
 
+    for handler in logger.handlers:
+        if isinstance(handler, logging.StreamHandler):
+            logger.removeHandler(handler)
+
     if stdout:
         stdout_handler = logging.StreamHandler(sys.stdout)
         stdout_handler.setLevel(level)
