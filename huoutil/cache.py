@@ -50,6 +50,9 @@ class RedisCache(object):
         return self._cache.set(k, v, ex=ex)
 
     def hset(self, k, n, v, ex=None):
+        """hset操作
+        因为redis过期时间只支持顶层key,且hset没有过期时间设置原子化操作，所以自己加入expire操作
+        """
         k = self._wrap_key(k)
         set_result = self._cache.hset(k, n, v)
         if ex:
