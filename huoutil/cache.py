@@ -49,6 +49,34 @@ class RedisCache(object):
             ex = self._expire
         return self._cache.set(k, v, ex=ex)
 
+    def hset(self, k, n, v, ex=None):
+        k = self._wrap_key(k)
+        set_result = self._cache.hset(k, n, v)
+        if ex:
+            ex_result = self._cache.expire(k, ex)
+        else:
+            ex_result = None
+        return set_result, ex_result
+
+    def hget(self, k, n):
+        k = self._wrap_key(k)
+        return self._cache.hget(k, n)
+
+    def hset_json(self, k, n, v, ex=None, encoder=None):
+        k = self._wrap_key(k)
+        if v is None:
+            nv = None
+        else:
+            nv = json.dumps(v, ensure_ascii=False, cls=encoder)
+        return self.hset(k, n, nv, ex=ex)
+
+    def hget_json(self, k, n, decoder=None):
+        jsn_str = self.hget(k, n)
+        if jsn_str is None:
+            return None
+        else:
+            return json.loads(jsn_str, cls=decoder)
+
     def get_list(self, k, sep='\x01'):
         k = self._wrap_key(k)
         v = self._cache.get(k)
