@@ -43,6 +43,12 @@ try:
 except ImportError:
     pass
 
+try:
+    from jsonschema import Draft7Validator, _utils as schema_utils
+except ImportError:
+    Draft7Validator = None
+    schema_utils = None
+
 HOST_PATTEN = re.compile(r'https?://([a-zA-Z0-9.\-_]+)')
 
 
@@ -1041,3 +1047,20 @@ def is_all_ascii(s):
         return True
     except UnicodeEncodeError:
         return False
+
+
+def input_schema_valid(params, schema, validator=Draft7Validator):
+    """
+    Determine whether the input parameters conform to the format according to the customized schema
+    Args:
+        params (dict): Input parameters
+        schema (dict): Customized schema
+    Returns:
+        result (list[string]): Error message that does not conform to the schema
+    """
+    result = []
+    v = validator(schema)
+    for error in sorted(v.iter_errors(params), key=str):
+        err_msg = schema_utils.format_as_index(error.relative_path) + ' : ' + error.message
+        result.append(err_msg)
+    return result
