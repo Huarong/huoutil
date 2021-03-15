@@ -8,4 +8,7 @@ setup(
     author=huoutil.__author__,
     author_email=huoutil.__author_email__,
     packages=['huoutil'],
+    install_requires=[
+        'six',
+    ],
 )
