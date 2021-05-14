@@ -250,10 +250,30 @@ class NewConfig(object):
                 setattr(self, name, value)
 
     def __getattr__(self, attr):
-        if self._default_property:
-            if attr not in self.__dict__:
+        _default_property = object.__getattribute__(self, "_default_property")
+        try:
+            return object.__getattribute__(self, attr)
+        except AttributeError as e:
+            if _default_property:
                 return None
-        raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, attr))
+            else:
+                raise AttributeError("'{}' object has no attribute '{}'".format(type(self).__name__, attr))
+
+    def __str__(self):
+        return str(self.__dict__)
+
+    def __unicode__(self):
+        return self.__str__()
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, obj):
+        for name, value in obj.items():
+            if name.startswith('__'):
+                continue
+            else:
+                setattr(self, name, value)
 
 
 def load_python_conf(conf_path, module_name='config', default_property=False):
