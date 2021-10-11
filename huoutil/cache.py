@@ -16,11 +16,11 @@ except ImportError:
 
 
 class RedisCache(object):
-    def __init__(self, host='localhost', port=6379, db=0, decode_responses=False):
+    def __init__(self, host='localhost', port=6379, db=0, password=None, decode_responses=False):
         self.host = host
         self.port = port
         self.db = db
-        self._cache = redis.StrictRedis(host=self.host, port=self.port, db=self.db, decode_responses=decode_responses)
+        self._cache = redis.StrictRedis(host=self.host, port=self.port, db=self.db, password=password, decode_responses=decode_responses)
         self._key_sep = '\x01'
         self._expire = None
 
