@@ -12,7 +12,12 @@ import pickle
 import codecs
 import json
 import subprocess
-from collections import defaultdict, Mapping
+from collections import defaultdict
+
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
 
 import six
 
